@@ -1,24 +1,40 @@
 import ListadoVacio from "@/components/ListadoVacio";
+import ProductCard from "@/components/ProductCard";
 import { marcas } from "@/data/marcas";
+import { productos } from "@/data/productos";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, View } from "react-native";
 
 type MarcaParams = {
   nombre: string;
 };
 
-// esta pantalla recibe el nombre de la marca desde la ruta
+// muestra los productos de esta marca
 export default function PantallaMarca() {
   const { nombre } = useLocalSearchParams<MarcaParams>();
-  const nombreVisible = marcas.find((marca) => marca.id === nombre)?.nombre || "marca";
+  const nombreVisible =
+    marcas.find((marca) => marca.id === nombre)?.nombre || "marca";
+
+  const filtrados = productos.filter((p) => p.marcaId === nombre);
 
   return (
     <View style={styles.container}>
-      {/* este titulo aparece arriba cuando se abre la pantalla */}
       <Stack.Screen
-        options={{ title: nombreVisible.charAt(0).toUpperCase() + nombreVisible.slice(1) }}
+        options={{
+          title: nombreVisible.charAt(0).toUpperCase() + nombreVisible.slice(1),
+        }}
       />
-      <ListadoVacio tipo="marca" valor={nombre} />
+
+      {filtrados.length === 0 ? (
+        <ListadoVacio />
+      ) : (
+        <FlatList
+          data={filtrados}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ProductCard producto={item} />}
+          contentContainerStyle={styles.lista}
+        />
+      )}
     </View>
   );
 }
@@ -30,10 +46,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: 1,
-    marginBottom: 4,
+  lista: {
+    paddingBottom: 20,
   },
 });

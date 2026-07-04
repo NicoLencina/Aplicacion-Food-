@@ -3,12 +3,12 @@ export type Marca = {
   nombre: string;
 };
 
-// estas marcas quedan vacias porque la entrega es una maqueta
+// marcas reales para mostrar en el carrusel y en fichas
 export const marcas: Marca[] = [
-  { id: "marca-1", nombre: "" },
-  { id: "marca-2", nombre: "" },
-  { id: "marca-3", nombre: "" },
-  { id: "marca-4", nombre: "" },
-  { id: "marca-5", nombre: "" },
-  { id: "marca-6", nombre: "" },
+  { id: "marca-1", nombre: "Coca-Cola" },
+  { id: "marca-2", nombre: "La Serenisima" },
+  { id: "marca-3", nombre: "Arcor" },
+  { id: "marca-4", nombre: "Quaker" },
+  { id: "marca-5", nombre: "Danone" },
+  { id: "marca-6", nombre: "Granix" },
 ];

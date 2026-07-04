@@ -12,6 +12,7 @@ export default function RootLayout() {
       <Stack.Screen name="categorias/[nombre]" />
       <Stack.Screen name="marcas/[nombre]" />
       <Stack.Screen name="etiquetas/[nombre]" />
+      <Stack.Screen name="fichas/[id]" />
     </Stack>
   );
 }

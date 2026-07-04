@@ -7,6 +7,7 @@ export const RUTAS = {
   CATEGORIA: "/categorias/[nombre]",
   MARCA: "/marcas/[nombre]",
   FILTRO: "/etiquetas/[nombre]",
+  FICHA: "/fichas/[id]",
   BUSCAR: "/buscar",
   FAVORITOS: "/favoritos",
 } as const;

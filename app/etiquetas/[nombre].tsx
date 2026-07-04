@@ -1,22 +1,40 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { StyleSheet, View } from "react-native";
 import ListadoVacio from "@/components/ListadoVacio";
+import ProductCard from "@/components/ProductCard";
 import { etiquetas } from "@/data/etiquetas";
+import { productos } from "@/data/productos";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { FlatList, StyleSheet, View } from "react-native";
 
 type EtiquetaParams = {
   nombre: string;
 };
 
-// esta pantalla recibe el nombre del filtro desde la ruta
+// muestra los productos que tienen esta etiqueta
 export default function PantallaFiltro() {
   const { nombre } = useLocalSearchParams<EtiquetaParams>();
-  const nombreVisible = etiquetas.find((etiqueta) => etiqueta.id === nombre)?.nombre ?? nombre;
+  const nombreVisible =
+    etiquetas.find((etiqueta) => etiqueta.id === nombre)?.nombre ?? nombre;
+
+  const filtrados = productos.filter((p) => p.etiquetaIds.includes(nombre));
 
   return (
     <View style={styles.container}>
-      {/* este titulo aparece arriba cuando se abre la pantalla */}
-      <Stack.Screen options={{ title: nombreVisible.charAt(0).toUpperCase() + nombreVisible.slice(1) }} />
-      <ListadoVacio tipo="etiquetas" valor={nombre}/>
+      <Stack.Screen
+        options={{
+          title: nombreVisible.charAt(0).toUpperCase() + nombreVisible.slice(1),
+        }}
+      />
+
+      {filtrados.length === 0 ? (
+        <ListadoVacio />
+      ) : (
+        <FlatList
+          data={filtrados}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <ProductCard producto={item} />}
+          contentContainerStyle={styles.lista}
+        />
+      )}
     </View>
   );
 }
@@ -28,10 +46,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 20,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    letterSpacing: 1,
-    marginBottom: 4,
+  lista: {
+    paddingBottom: 20,
   },
 });

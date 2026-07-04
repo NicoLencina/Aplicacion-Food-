@@ -4,7 +4,7 @@ import { etiquetas } from "@/data/etiquetas";
 import { marcas } from "@/data/marcas";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import "react-native-reanimated";
 
 // esta es la pantalla principal de la maqueta
@@ -54,17 +54,21 @@ function GrillaCategorias() {
         <Text style={styles.tituloLista}>Categorias</Text>
         <Text style={styles.textoSecundario}>ver lista</Text>
       </View>
-      <View style={styles.grilla}>
-        {categorias.map((categoria) => (
+      <FlatList
+        data={categorias}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        scrollEnabled={false}
+        columnWrapperStyle={styles.filaGrilla}
+        renderItem={({ item }) => (
           <TarjetaCategoria
-            key={categoria.id}
-            item={categoria}
+            item={item}
             onPress={() =>
-              navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: categoria.id }))
+              navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: item.id }))
             }
           />
-        ))}
-      </View>
+        )}
+      />
     </View>
   );
 }
@@ -95,7 +99,6 @@ function CarruselMarcas() {
     <View style={styles.bloqueLista}>
       <Text style={styles.tituloLista}>Marcas</Text>
       <Text style={styles.descripcion}>Opciones organizadas por empresa</Text>
-      {/* este carrusel queda vacio para la maqueta */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -180,11 +183,7 @@ const styles = StyleSheet.create({
   textoSecundario: {
     color: "#555",
   },
-  grilla: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
+
   contenedorItems: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -203,10 +202,14 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   tarjeta: {
-    width: "48%",
+    flex: 1,
     aspectRatio: 1,
     borderRadius: 16,
     overflow: "hidden",
+  },
+  filaGrilla: {
+    gap: 12,
+    marginBottom: 12,
   },
   tarjetaInterna: {
     flex: 1,
