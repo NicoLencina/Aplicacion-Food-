@@ -2,6 +2,7 @@ import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
 import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
 import {
   textoEcoScore,
+  textoGrupoNova,
   textoNutriScore,
 } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -50,13 +51,9 @@ const COLORES_ECO_SCORE: Record<string, string> = {
   E: "#cc0000",
 };
 
-// etiquetas NOVA con su descripcion, para que sea mas legible y entendible para el usuario, en lugar de solo mostrar el numero
-const ETIQUETAS_NOVA: Record<number, string> = {
-  1: "Sin procesar",
-  2: "Ingrediente culinario",
-  3: "Procesado",
-  4: "Ultraprocesado",
-};
+// las funciones textoNutriScore, textoEcoScore y textoGrupoNova
+// ya viven en el transformer y devuelven "Sin calificar" si el valor
+// no es valido. la pantalla solo renderiza.
 
 // muestra el detalle completo de un producto
 // recibe el codigo de barras desde la ruta y lo busca en la api de open food facts
@@ -157,13 +154,13 @@ export default function FichaScreen() {
         />
         <ScoreBox
           label="Procesamiento"
-          value={String(producto.grupoNova)}
+          value={producto.grupoNova ? String(producto.grupoNova) : "?"}
           color={COLORES_NOVA[producto.grupoNova] ?? COLORES.textoMuted}
-          subtitulo={ETIQUETAS_NOVA[producto.grupoNova]}
+          subtitulo={textoGrupoNova(producto.grupoNova)}
         />
         <ScoreBox
           label={"Impacto\nambiental"}
-          value={producto.ecoScore === "UNKNOWN" ? "?" : producto.ecoScore}
+          value={producto.ecoScore}
           color={COLORES_ECO_SCORE[producto.ecoScore] ?? COLORES.textoMuted}
           subtitulo={textoEcoScore(producto.ecoScore)}
         />
@@ -176,7 +173,7 @@ export default function FichaScreen() {
 
       {/* tabla nutricional */}
       <InfoSeccion titulo="Informacion nutricional (por 100g/ml)">
-        <NutrienteFila label="Energia (kJ)" valor={producto.nutrientes.energia} />
+        <NutrienteFila label="Energía" valor={producto.nutrientes.energiaKcal} unidad="kcal" />
         <NutrienteFila label="Grasas" valor={producto.nutrientes.grasa} unidad="g" />
         <NutrienteFila
           label="de las cuales saturadas"
@@ -270,6 +267,8 @@ function IngredientesLista({ texto }: { texto: string }) {
 }
 
 // fila de la tabla nutricional
+// null = la api no devolvio el valor, se muestra "sin informacion"
+// 0 = valor real, se muestra "0.0" con la unidad
 function NutrienteFila({
   label,
   valor,
@@ -277,11 +276,12 @@ function NutrienteFila({
   subfila = false,
 }: {
   label: string;
-  valor: number;
+  valor: number | null;
   unidad?: string;
   subfila?: boolean;
 }) {
-  const valorStr = valor !== undefined && valor !== null ? valor.toFixed(1) : "—";
+  const hayValor = valor !== null;
+  const valorStr = hayValor ? valor.toFixed(1) : "sin información";
 
   return (
     <View style={styles.filaNutriente}>
@@ -297,7 +297,7 @@ function NutrienteFila({
       </Text>
       <Text style={styles.filaValor}>
         {valorStr}
-        {unidad ? ` ${unidad}` : ""}
+        {hayValor && unidad ? ` ${unidad}` : ""}
       </Text>
     </View>
   );

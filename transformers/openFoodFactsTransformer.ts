@@ -4,15 +4,18 @@
 
 // --- tipos para los datos transformados ---
 
+// null significa que la api no devolvio el valor
+// (distinto de 0, que es un valor valido)
 export type NutrientesAPI = {
-  energia: number;
-  grasa: number;
-  grasaSaturada: number;
-  carbohidratos: number;
-  azucares: number;
-  fibra: number;
-  proteina: number;
-  sal: number;
+  energia: number | null;
+  energiaKcal: number | null;
+  grasa: number | null;
+  grasaSaturada: number | null;
+  carbohidratos: number | null;
+  azucares: number | null;
+  fibra: number | null;
+  proteina: number | null;
+  sal: number | null;
 };
 
 export type ProductoAPIDetalle = {
@@ -80,7 +83,11 @@ export function textoNutriScore(grado: string): string {
     d: "Regular",
     e: "Poco saludable",
   };
-  return mapa[grado.toLowerCase()] ?? "desconocido";
+  const key = grado.toLowerCase();
+  if (key === "unknown" || key === "not-applicable" || !mapa[key]) {
+    return "Sin calificar";
+  }
+  return mapa[key];
 }
 
 // texto descriptivo para cada grado de eco-score
@@ -93,7 +100,9 @@ export function textoEcoScore(grado: string): string {
     e: "Poco ecologico",
   };
   const key = grado.toLowerCase();
-  if (key === "unknown" || !mapa[key]) return "Sin clasificar";
+  if (key === "unknown" || key === "not-applicable" || !mapa[key]) {
+    return "Sin calificar";
+  }
   return mapa[key];
 }
 
@@ -105,7 +114,7 @@ export function textoGrupoNova(grupo: number): string {
     3: "Procesado",
     4: "Ultraprocesado",
   };
-  return mapa[grupo] ?? "Desconocido";
+  return mapa[grupo] ?? "Sin calificar";
 }
 
 // --- transformadores ---
@@ -115,16 +124,53 @@ function valorSeguro(valor: unknown, fallback: number): number {
   return fallback;
 }
 
+// version para nutrientes: devuelve null cuando la api no manda el valor,
+// en vez de inventar un 0. asi la pantalla puede mostrar "sin informacion"
+function valorNutricionalSeguro(valor: unknown): number | null {
+  if (typeof valor === "number" && !Number.isNaN(valor)) return valor;
+
+  // uso null para diferenciar dato faltante de un 0 real que venga de la api
+  return null;
+}
+
+function textoSeguro(valor: unknown, fallback: string): string {
+  if (typeof valor !== "string") return fallback;
+
+  const texto = valor.trim();
+  return texto.length > 0 ? texto : fallback;
+}
+
+// normaliza valores de scores (nutriScore, ecoScore) a un formato consistente.
+// si el valor es null, undefined, vacio, "unknown" o "not-applicable" devuelve el fallback
+function normalizarScore(raw: unknown, fallback: string): string {
+  if (raw == null) return fallback;
+  const texto = String(raw).trim().toUpperCase();
+  if (texto === "" || texto === "UNKNOWN" || texto === "NOT-APPLICABLE" || texto === "?") {
+    return fallback;
+  }
+  return texto;
+}
+
+function primerTextoDisponible(valores: unknown[], fallback: string): string {
+  for (const valor of valores) {
+    const texto = textoSeguro(valor, "");
+    if (texto) return texto;
+  }
+
+  return fallback;
+}
+
 function transformarNutrientes(raw: Record<string, unknown> | undefined): NutrientesAPI {
   return {
-    energia: valorSeguro(raw?.["energy-kj_100g"], 0),
-    grasa: valorSeguro(raw?.["fat_100g"], 0),
-    grasaSaturada: valorSeguro(raw?.["saturated-fat_100g"], 0),
-    carbohidratos: valorSeguro(raw?.["carbohydrates_100g"], 0),
-    azucares: valorSeguro(raw?.["sugars_100g"], 0),
-    fibra: valorSeguro(raw?.["fiber_100g"], 0),
-    proteina: valorSeguro(raw?.["proteins_100g"], 0),
-    sal: valorSeguro(raw?.["salt_100g"], 0),
+    energia: valorNutricionalSeguro(raw?.["energy-kj_100g"]),
+    energiaKcal: valorNutricionalSeguro(raw?.["energy-kcal_100g"]),
+    grasa: valorNutricionalSeguro(raw?.["fat_100g"]),
+    grasaSaturada: valorNutricionalSeguro(raw?.["saturated-fat_100g"]),
+    carbohidratos: valorNutricionalSeguro(raw?.["carbohydrates_100g"]),
+    azucares: valorNutricionalSeguro(raw?.["sugars_100g"]),
+    fibra: valorNutricionalSeguro(raw?.["fiber_100g"]),
+    proteina: valorNutricionalSeguro(raw?.["proteins_100g"]),
+    sal: valorNutricionalSeguro(raw?.["salt_100g"]),
   };
 }
 
@@ -136,15 +182,21 @@ export function transformarProducto(
   if (!raw) return null;
 
   return {
-    codigoBarras: String(raw.code ?? ""),
-    nombre: String(raw.product_name ?? "producto sin nombre"),
-    marcas: String(raw.brands ?? ""),
-    imagenUrl: String(raw.image_url ?? ""),
-    nutriScore: String(raw.nutriscore_grade ?? "?").toUpperCase(),
-    ecoScore: String(raw.ecoscore_grade ?? "unknown").toUpperCase(),
+    codigoBarras: textoSeguro(raw.code, ""),
+    nombre: primerTextoDisponible(
+      [raw.product_name_es, raw.product_name_en, raw.product_name],
+      "producto sin nombre"
+    ),
+    marcas: textoSeguro(raw.brands, ""),
+    imagenUrl: textoSeguro(raw.image_url, ""),
+    nutriScore: normalizarScore(raw.nutriscore_grade, "?"),
+    ecoScore: normalizarScore(raw.ecoscore_grade, "?"),
     grupoNova: valorSeguro(raw.nova_group, 0),
     ingredientes: limpiarTextoIngredientes(
-      String(raw.ingredients_text_es ?? raw.ingredients_text ?? "sin informacion")
+      primerTextoDisponible(
+        [raw.ingredients_text_es, raw.ingredients_text_en, raw.ingredients_text],
+        "sin informacion"
+      )
     ),
     nutrientes: transformarNutrientes(
       raw.nutriments as Record<string, unknown> | undefined
@@ -173,12 +225,15 @@ function transformarItemBusqueda(
   raw: Record<string, unknown>
 ): ProductoAPIResumen {
   return {
-    codigoBarras: String(raw.code ?? ""),
-    nombre: String(raw.product_name ?? "producto sin nombre"),
-    marcas: String(raw.brands ?? ""),
-    imagenUrl: String(raw.image_url ?? ""),
-    nutriScore: String(raw.nutriscore_grade ?? "?").toUpperCase(),
-    ecoScore: String(raw.ecoscore_grade ?? "unknown").toUpperCase(),
+    codigoBarras: textoSeguro(raw.code, ""),
+    nombre: primerTextoDisponible(
+      [raw.product_name_es, raw.product_name_en, raw.product_name],
+      "producto sin nombre"
+    ),
+    marcas: textoSeguro(raw.brands, ""),
+    imagenUrl: textoSeguro(raw.image_url, ""),
+    nutriScore: normalizarScore(raw.nutriscore_grade, "?"),
+    ecoScore: normalizarScore(raw.ecoscore_grade, "?"),
     grupoNova: valorSeguro(raw.nova_group, 0),
   };
 }

@@ -15,6 +15,8 @@ const TIMEOUT_MS = 8000;
 const CAMPOS_DETALLE = [
   "code",
   "product_name",
+  "product_name_es",
+  "product_name_en",
   "brands",
   "image_url",
   "nutriscore_grade",
@@ -22,6 +24,7 @@ const CAMPOS_DETALLE = [
   "nova_group",
   "ingredients_text",
   "ingredients_text_es",
+  "ingredients_text_en",
   "nutriments",
 ].join(",");
 
@@ -29,6 +32,8 @@ const CAMPOS_DETALLE = [
 const CAMPOS_LISTA = [
   "code",
   "product_name",
+  "product_name_es",
+  "product_name_en",
   "brands",
   "image_url",
   "nutriscore_grade",

@@ -35,7 +35,7 @@ export type Producto = {
 // cuando la api este lista estos datos se reemplazan por datos reales
 export const productos: Producto[] = [
   {
-    id: "3017620422003",
+    id: "5449000036872",
     nombre: "Coca-Cola Original",
     marcaId: "marca-1",
     marca: "Coca-Cola",
@@ -58,7 +58,7 @@ export const productos: Producto[] = [
     ecoScore: "D",
   },
   {
-    id: "prod-2",
+    id: "42105220",
     nombre: "Coca-Cola Zero",
     marcaId: "marca-1",
     marca: "Coca-Cola",
@@ -81,7 +81,7 @@ export const productos: Producto[] = [
     ecoScore: "D",
   },
   {
-    id: "prod-3",
+    id: "5449000008046",
     nombre: "Agua Mineral Villavicencio",
     marcaId: "marca-5",
     marca: "Danone",
@@ -104,7 +104,7 @@ export const productos: Producto[] = [
     ecoScore: "A",
   },
   {
-    id: "prod-4",
+    id: "90375323",
     nombre: "Leche Entera La Serenisima",
     marcaId: "marca-2",
     marca: "La Serenisima",
@@ -127,7 +127,7 @@ export const productos: Producto[] = [
     ecoScore: "B",
   },
   {
-    id: "prod-5",
+    id: "5449000203823",
     nombre: "Yogur Bebible Ser",
     marcaId: "marca-2",
     marca: "La Serenisima",
