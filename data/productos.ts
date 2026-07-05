@@ -35,7 +35,7 @@ export type Producto = {
 // cuando la api este lista estos datos se reemplazan por datos reales
 export const productos: Producto[] = [
   {
-    id: "prod-1",
+    id: "3017620422003",
     nombre: "Coca-Cola Original",
     marcaId: "marca-1",
     marca: "Coca-Cola",

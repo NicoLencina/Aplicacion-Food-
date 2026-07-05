@@ -1,13 +1,18 @@
-import { categorias } from "@/data/categorias";
-import { etiquetas } from "@/data/etiquetas";
-import { productos } from "@/data/productos";
+import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
+import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
+import {
+  textoEcoScore,
+  textoNutriScore,
+} from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 type FichaParams = {
   id: string;
 };
 
+// colores para verlos mejor y mas visual para distinguir
 const COLORES_NUTRI_SCORE: Record<string, string> = {
   A: "#1a7a1a",
   B: "#53b83a",
@@ -16,6 +21,7 @@ const COLORES_NUTRI_SCORE: Record<string, string> = {
   E: "#cc0000",
 };
 
+// etiquetas NOVA con su descripcion, para que sea mas legible y entendible para el usuario, en lugar de solo mostrar el numero
 const ETIQUETAS_NOVA: Record<number, string> = {
   1: "sin procesar",
   2: "ingrediente culinario",
@@ -24,21 +30,67 @@ const ETIQUETAS_NOVA: Record<number, string> = {
 };
 
 // muestra el detalle completo de un producto
-// recibe el id desde la ruta y busca el producto en la lista local
+// recibe el codigo de barras desde la ruta y lo busca en la api de open food facts
 export default function FichaScreen() {
   const { id } = useLocalSearchParams<FichaParams>();
 
-  const producto = productos.find((p) => p.id === id);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [producto, setProducto] = useState<ProductoAPIDetalle | null>(null);
 
-  if (!producto) {
+  useEffect(() => {
+    if (!id) return;
+
+    let activo = true;
+
+    setLoading(true);
+    setError(null);
+    setProducto(null);
+
+    fetchProductoPorCodigo(id)
+      .then((res) => {
+        if (!activo) return;
+
+        if (!res.encontrado || !res.producto) {
+          setError("producto no encontrado");
+        } else {
+          setProducto(res.producto);
+        }
+      })
+      .catch((e: Error) => {
+        if (!activo) return;
+        setError(e.message || "error al cargar el producto");
+      })
+      .finally(() => {
+        if (activo) setLoading(false);
+      });
+
+    return () => {
+      activo = false;
+    };
+  }, [id]);
+
+  // estado: cargando
+  if (loading) {
     return (
       <View style={styles.container}>
         <Stack.Screen options={{ title: "Producto" }} />
-        <Text style={styles.noEncontrado}>producto no encontrado</Text>
+        <Text style={styles.centerText}>cargando...</Text>
       </View>
     );
   }
 
+  // estado: error o producto no encontrado
+  if (error || !producto) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ title: "Producto" }} />
+        <Text style={styles.centerText}>{error ?? "producto no encontrado"}</Text>
+      </View>
+    );
+  }
+
+  // estado: producto cargado exitosamente
   return (
     <ScrollView
       style={styles.container}
@@ -48,63 +100,44 @@ export default function FichaScreen() {
 
       {/* imagen */}
       <View style={styles.imagenGrande}>
-        <Text style={styles.imagenEmoji}>🍽️</Text>
+        {producto.imagenUrl ? (
+          <Image
+            source={{ uri: producto.imagenUrl }}
+            style={styles.imagen}
+            resizeMode="contain"
+          />
+        ) : (
+          <Text style={styles.imagenEmoji}>🍽️</Text>
+        )}
       </View>
 
       {/* nombre y marca */}
       <Text style={styles.nombre}>{producto.nombre}</Text>
-      <Text style={styles.marca}>{producto.marca}</Text>
+      {producto.marcas ? (
+        <Text style={styles.marca}>{producto.marcas}</Text>
+      ) : null}
 
       {/* scores */}
       <View style={styles.scoresRow}>
         <ScoreBox
-          label="Nutri-Score"
+          label={"Calidad\nnutricional"}
           value={producto.nutriScore}
           color={COLORES_NUTRI_SCORE[producto.nutriScore] ?? "#888"}
+          subtitulo={textoNutriScore(producto.nutriScore)}
         />
         <ScoreBox
-          label="NOVA"
-          value={String(producto.novaGroup)}
+          label="Procesamiento"
+          value={String(producto.grupoNova)}
           color="#888"
-          subtitulo={ETIQUETAS_NOVA[producto.novaGroup]}
+          subtitulo={ETIQUETAS_NOVA[producto.grupoNova]}
         />
         <ScoreBox
-          label="Eco-Score"
+          label={"Impacto\nambiental"}
           value={producto.ecoScore}
           color="#888"
+          subtitulo={textoEcoScore(producto.ecoScore)}
         />
       </View>
-
-      {/* categoria y etiquetas */}
-      <InfoSeccion titulo="Categoria">
-        <Text style={styles.infoTexto}>
-          {categorias.find((c) => c.id === producto.categoriaId)?.nombre ?? "—"}
-        </Text>
-      </InfoSeccion>
-
-      {producto.etiquetaIds.length > 0 && (
-        <InfoSeccion titulo="Etiquetas">
-          <View style={styles.etiquetasRow}>
-            {producto.etiquetaIds.map((eid) => {
-              const etiqueta = etiquetas.find((e) => e.id === eid);
-              return (
-                <View key={eid} style={styles.etiquetaChip}>
-                  <Text style={styles.etiquetaTexto}>
-                    {etiqueta?.nombre ?? eid}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        </InfoSeccion>
-      )}
-
-      {/* descripcion */}
-      <InfoSeccion titulo="Descripcion">
-        <Text style={styles.infoTexto}>
-          {producto.descripcion || "sin informacion"}
-        </Text>
-      </InfoSeccion>
 
       {/* ingredientes */}
       <InfoSeccion titulo="Ingredientes">
@@ -215,7 +248,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 40,
   },
-  noEncontrado: {
+  centerText: {
     textAlign: "center",
     marginTop: 60,
     fontSize: 18,
@@ -229,6 +262,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
+    overflow: "hidden",
+  },
+  imagen: {
+    width: "100%",
+    height: "100%",
   },
   imagenEmoji: {
     fontSize: 64,
@@ -237,33 +275,42 @@ const styles = StyleSheet.create({
     fontSize: 26,
     fontWeight: "800",
     color: "#222",
+    flexWrap: "wrap",
   },
   marca: {
     fontSize: 16,
     color: "#666",
     marginTop: 4,
     marginBottom: 16,
+    flexWrap: "wrap",
   },
   scoresRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: 10,
     marginBottom: 20,
   },
   scoreBox: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#fff",
     borderRadius: 12,
-    padding: 12,
+    padding: 10,
     borderWidth: 1,
     borderColor: "#e0e0e0",
   },
   scoreLabel: {
-    fontSize: 11,
-    fontWeight: "600",
+    width: "100%",
+    height: 32,
+    fontSize: 12,
+    fontWeight: "700",
     color: "#888",
     marginBottom: 6,
-    textTransform: "uppercase",
+    textAlign: "center",
+    textAlignVertical: "center",
+    flexWrap: "wrap",
+    flexShrink: 1,
+    lineHeight: 14,
   },
   scoreCirculo: {
     width: 40,
@@ -282,6 +329,10 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 4,
     textAlign: "center",
+    flexWrap: "wrap",
+    flexShrink: 1,
+    width: "100%",
+    lineHeight: 13,
   },
   seccion: {
     marginBottom: 20,
@@ -298,22 +349,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
     lineHeight: 22,
-  },
-  etiquetasRow: {
-    flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-  },
-  etiquetaChip: {
-    backgroundColor: "#e6f0e6",
-    borderRadius: 999,
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-  },
-  etiquetaTexto: {
-    fontSize: 13,
-    color: "#2d5a2d",
-    fontWeight: "600",
   },
   filaNutriente: {
     flexDirection: "row",
