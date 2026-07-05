@@ -3,6 +3,7 @@ import TarjetaProducto from "@/components/TarjetaProducto";
 import type { ProductoParaTarjeta } from "@/components/TarjetaProducto";
 import { categorias } from "@/data/categorias";
 import { buscarProductos } from "@/services/openFoodFacts";
+import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
@@ -158,7 +159,7 @@ export default function PantallaCategoria() {
       })
       .catch((e: Error) => {
         if (!activo) return;
-        setError(e.message || "error al cargar productos");
+        setError(mensajeErrorAmigable(e));
       })
       .finally(() => {
         if (activo) setCargando(false);

@@ -1,4 +1,5 @@
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
+import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
 import {
   textoEcoScore,
@@ -61,7 +62,7 @@ export default function PantallaFicha() {
       })
       .catch((e: Error) => {
         if (!activo) return;
-        setError(e.message || "error al cargar el producto");
+        setError(mensajeErrorAmigable(e));
       })
       .finally(() => {
         if (activo) setLoading(false);

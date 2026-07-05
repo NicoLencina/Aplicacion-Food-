@@ -1,6 +1,6 @@
-import { CameraView, useCameraPermissions } from "expo-camera";
-import type { BarcodeScanningResult, BarcodeType } from "expo-camera";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import type { BarcodeScanningResult, BarcodeType } from "expo-camera";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,9 +11,10 @@ import {
   View,
 } from "react-native";
 
-import { sanitizarCodigoBarras } from "@/utils/barcode";
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
 import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
+import { sanitizarCodigoBarras } from "@/utils/barcode";
+import { mensajeErrorAmigable } from "@/utils/errores";
 
 // tipos de codigo de barras para la camara
 
@@ -119,11 +120,9 @@ export default function ModalEscanerCodigo({
             return;
           }
 
-          const mensaje =
-            e?.message && e.message !== "Error"
-              ? e.message
-              : "Error al buscar producto";
-          setProductState({ status: "not_found", error: mensaje });
+          setProductState({ status: "not_found", error: mensajeErrorAmigable(e) });
+        })
+        .finally(() => {
         });
     },
     [scanned],

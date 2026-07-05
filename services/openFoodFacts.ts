@@ -56,19 +56,43 @@ export type BusquedaParams = {
 
 // --- helpers internos ---
 
+//agrego reintentos para que no salga error de primera, ya que la api falla
 async function pedirFetch(url: string): Promise<Record<string, unknown>> {
-  const control = new AbortController();
-  const timeout = setTimeout(() => control.abort(), TIMEOUT_MS);
+  const MAX_INTENTOS = 4;
+  const TIMEOUT_POR_INTENTO = 8000;
+  let ultimoError: unknown;
 
-  try {
-    const respuesta = await fetch(url, { signal: control.signal });
-    if (!respuesta.ok) {
-      throw new Error(`la api respondio con estado ${respuesta.status}`);
+  for (let intento = 0; intento < MAX_INTENTOS; intento++) {
+    if (intento > 0) {
+      await new Promise((r) => setTimeout(r, 1000));
     }
-    return (await respuesta.json()) as Record<string, unknown>;
-  } finally {
-    clearTimeout(timeout);
+
+    const control = new AbortController();
+    const timeout = setTimeout(() => control.abort(), TIMEOUT_POR_INTENTO);
+
+    try {
+      const respuesta = await fetch(url, { signal: control.signal });
+      if (!respuesta.ok) {
+        throw new Error(`la api respondio con estado ${respuesta.status}`);
+      }
+      return (await respuesta.json()) as Record<string, unknown>;
+    } catch (e) {
+      if (intento === MAX_INTENTOS - 1) throw e;
+
+      const mensaje = e instanceof Error ? e.message : "";
+      const matchStatus = mensaje.match(/estado (\d+)/);
+      const status = matchStatus ? Number(matchStatus[1]) : null;
+
+      // solo no reintentamos 404 (producto no encontrado)
+      if (status === 404) throw e;
+
+      ultimoError = e;
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+
+  throw ultimoError;
 }
 
 // --- funciones publicas ---
