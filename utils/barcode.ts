@@ -13,15 +13,15 @@ export type CodigoSanitizado =
   | CodigoSanitizadoValido
   | CodigoSanitizadoInvalido;
 
-// expande un upc-e de 6 digitos a upc-a de 12 digitos.
-// luego se puede anteponer 0 para consultar open food facts como ean-13.
-function expandirUPCE(
-  d1: string,
-  d2: string,
-  d3: string,
-  d4: string,
-  d5: string
-): string {
+// expande un upc-e de 6 digitos a upc-a de 12 digitos
+// luego se puede anteponer 0 para consultar open food facts como ean-13
+function expandirUPCE(digitos: string): string {
+  const d1 = digitos[0]!;
+  const d2 = digitos[1]!;
+  const d3 = digitos[2]!;
+  const d4 = digitos[3]!;
+  const d5 = digitos[4]!;
+
   const mid = `${d2}${d3}${d4}`;
   const lastDigit = Number(d5);
 
@@ -39,8 +39,8 @@ function expandirUPCE(
   }
 }
 
-// sanitiza y valida el codigo antes de consultar la api.
-// evita pedir productos con strings vacios, controles o formatos imposibles.
+// sanitiza y valida el codigo antes de consultar la api
+// evita pedir productos con strings vacios, controles o formatos imposibles
 export function sanitizarCodigoBarras(raw: string): CodigoSanitizado {
   const trimmed = raw.trim();
   if (!trimmed) {
@@ -68,16 +68,11 @@ export function sanitizarCodigoBarras(raw: string): CodigoSanitizado {
   }
 
   if (digitos.length === 6) {
-    const d1 = digitos[0]!;
-    const d2 = digitos[1]!;
-    const d3 = digitos[2]!;
-    const d4 = digitos[3]!;
-    const d5 = digitos[4]!;
-    const upcA = expandirUPCE(d1, d2, d3, d4, d5);
+    const upcA = expandirUPCE(digitos);
     return { valido: true, codigo: `0${upcA}` };
   }
 
-  // code128 existe en algunos productos, pero no debe permitir caracteres raros.
+  // code128 existe en algunos productos, pero no debe permitir caracteres raros
   if (/^[\x20-\x7e]{4,80}$/.test(clean)) {
     return { valido: true, codigo: clean };
   }

@@ -1,5 +1,5 @@
 import ListadoVacio from "@/components/ListadoVacio";
-import ProductCard from "@/components/ProductCard";
+import TarjetaProducto from "@/components/TarjetaProducto";
 import { etiquetas } from "@/data/etiquetas";
 import { productos } from "@/data/productos";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -31,7 +31,7 @@ export default function PantallaFiltro() {
         <FlatList
           data={filtrados}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ProductCard producto={item} />}
+          renderItem={({ item }) => <TarjetaProducto producto={item} />}
           contentContainerStyle={styles.lista}
         />
       )}

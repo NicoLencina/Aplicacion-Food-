@@ -3,13 +3,11 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import BarcodeScannerModal from "@/components/BarcodeScannerModal";
+import ModalEscanerCodigo from "@/components/ModalEscanerCodigo";
 
-// ---------------------------------------------------------------------------
-// Pantalla principal de búsqueda
-// ---------------------------------------------------------------------------
+// pantalla principal de busqueda
 
-export default function SearchScreen() {
+export default function PantallaBusqueda() {
   const [modalVisible, setModalVisible] = useState(false);
   const [codigoPendiente, setCodigoPendiente] = useState<string | null>(null);
 
@@ -26,9 +24,8 @@ export default function SearchScreen() {
     setCodigoPendiente(codigo);
   }, []);
 
-  // Cuando el modal termina de cerrarse y hay un código pendiente, navegar.
-  // Esto evita el setTimeout mágico y el riesgo de navegar antes de que el
-  // modal termine su animación de cierre.
+  // cuando el modal termina de cerrarse y hay un codigo pendiente, navegamos
+  // esto evita usar un setTimeout magico antes de cambiar de pantalla
   useEffect(() => {
     if (!modalVisible && codigoPendiente) {
       const codigo = codigoPendiente;
@@ -50,7 +47,7 @@ export default function SearchScreen() {
         <Text style={styles.cameraButtonText}>Escanear</Text>
       </Pressable>
 
-      <BarcodeScannerModal
+      <ModalEscanerCodigo
         visible={modalVisible}
         onClose={handleClose}
         onProductoEncontrado={handleProductoEncontrado}
@@ -58,10 +55,6 @@ export default function SearchScreen() {
     </View>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Estilos
-// ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: {

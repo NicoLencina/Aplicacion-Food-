@@ -1,6 +1,6 @@
 import ListadoVacio from "@/components/ListadoVacio";
-import ProductCard from "@/components/ProductCard";
-import type { ProductoParaCard } from "@/components/ProductCard";
+import TarjetaProducto from "@/components/TarjetaProducto";
+import type { ProductoParaTarjeta } from "@/components/TarjetaProducto";
 import { categorias } from "@/data/categorias";
 import { buscarProductos } from "@/services/openFoodFacts";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
@@ -10,21 +10,6 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 
 type CategoriaParams = {
   nombre: string;
-};
-
-// relaciona cada id de categoria local con su tag de open food facts
-// todas las categorias locales coinciden con tags off existentes
-const MAPA_CATEGORIAS_OFF: Record<string, string> = {
-  beverages: "en:beverages",
-  "cereals-and-potatoes": "en:cereals-and-potatoes",
-  chocolates: "en:chocolates",
-  meals: "en:meals",
-  breakfasts: "en:breakfasts",
-  "biscuits-and-cakes": "en:biscuits-and-cakes",
-  dairies: "en:dairies",
-  desserts: "en:desserts",
-  snacks: "en:snacks",
-  "plant-based-foods": "en:plant-based-foods",
 };
 
 // constantes de fetching y visualizacion
@@ -38,8 +23,8 @@ const PAIS_ARGENTINA = "en:argentina";
 // las categorias de open food facts son colaborativas y ruidosas
 // un producto puede aparecer como "snack" cuando en realidad es fideo
 // por eso aplicamos dos mecanismos:
-//   - excluir: filtro fuerte — elimina productos que sabemos no corresponden
-//   - incluir: ordenamiento suave — productos afines van primero en la lista
+//   - excluir: filtro fuerte -- elimina productos que sabemos no corresponden
+//   - incluir: ordenamiento suave -- productos afines van primero en la lista
 // incluir NO es un filtro porque la api ya devolvio resultados para el tag
 // de la categoria; los sub-tags son muy especificos y excluirian productos
 // validos que no los tengan (pisar los resultados de la api)
@@ -114,8 +99,8 @@ function ordenarPriorizandoTags(
   });
 }
 
-// mapea el resumen de la api al formato que entiende ProductCard
-function aProductoCard(item: ProductoAPIResumen): ProductoParaCard {
+// mapea el resumen de la api al formato que entiende la tarjeta
+function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
   return {
     id: item.codigoBarras,
     nombre: item.nombre,
@@ -127,12 +112,12 @@ function aProductoCard(item: ProductoAPIResumen): ProductoParaCard {
 // muestra los productos de la api que pertenecen a esta categoria
 export default function PantallaCategoria() {
   const { nombre } = useLocalSearchParams<CategoriaParams>();
-  const nombreVisible =
-    categorias.find((categoria) => categoria.id === nombre)?.nombre ?? nombre;
+  const categoria = categorias.find((c) => c.id === nombre);
+  const nombreVisible = categoria?.nombre ?? nombre;
 
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState<ProductoParaCard[]>([]);
+  const [items, setItems] = useState<ProductoParaTarjeta[]>([]);
 
   useEffect(() => {
     if (!nombre) return;
@@ -142,7 +127,7 @@ export default function PantallaCategoria() {
     setError(null);
     setItems([]);
 
-    const tagOFF = MAPA_CATEGORIAS_OFF[nombre];
+    const tagOFF = categorias.find((c) => c.id === nombre)?.tagOFF;
 
     // si la categoria no tiene equivalente en off, mostramos error
     if (!tagOFF) {
@@ -168,7 +153,7 @@ export default function PantallaCategoria() {
         if (ordenados.length === 0) {
           setItems([]);
         } else {
-          setItems(ordenados.slice(0, CANTIDAD_A_MOSTRAR).map(aProductoCard));
+          setItems(ordenados.slice(0, CANTIDAD_A_MOSTRAR).map(aProductoTarjeta));
         }
       })
       .catch((e: Error) => {
@@ -207,7 +192,7 @@ export default function PantallaCategoria() {
         <FlatList
           data={items}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ProductCard producto={item} />}
+          renderItem={({ item }) => <TarjetaProducto producto={item} />}
           contentContainerStyle={styles.lista}
         />
       )}

@@ -36,11 +36,11 @@ Cuando la API dispone del campo especifico para espanol (ej. `ingredients_text_e
 
 La pantalla `app/categorias/[nombre].tsx` ahora busca productos reales en Open Food Facts en vez de filtrar datos mock locales.
 
-- cada categoria local tiene un tag OFF mapeado en `MAPA_CATEGORIAS_OFF` dentro del mismo archivo de pantalla
+- cada categoria local tiene su tag OFF definido en `data/categorias.ts`, junto al resto de sus datos
 - la busqueda filtra por categoria + pais Argentina (`countries_tags=en:argentina`) y trae hasta 60 resultados crudos
 - el transformer prioriza nombres en espanol cuando existen, y cae a ingles o generico si no
 - al tocar un producto navega a la ficha por codigo de barras (`/fichas/{codigoBarras}`)
-- los resultados se mapean al formato `ProductoParaCard` que entiende `ProductCard`
+- los resultados se mapean al formato `ProductoParaTarjeta` que entiende `TarjetaProducto`
 
 ### Batch: filtrado post-API por categories_tags
 

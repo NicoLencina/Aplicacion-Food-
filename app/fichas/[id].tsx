@@ -5,6 +5,11 @@ import {
   textoGrupoNova,
   textoNutriScore,
 } from "@/transformers/openFoodFactsTransformer";
+import {
+  COLORES_NUTRI_SCORE,
+  COLORES_NOVA,
+  COLORES_ECO_SCORE,
+} from "@/constants/scores";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -26,40 +31,9 @@ const COLORES = {
   imagenFondo: "#e0e0e0",
 } as const;
 
-// colores para interpretar cada score de un vistazo: verde es mejor,
-// rojo es peor. gris se usa cuando la api no manda un valor valido
-const COLORES_NUTRI_SCORE: Record<string, string> = {
-  A: "#1a7a1a",
-  B: "#53b83a",
-  C: "#ffcc00",
-  D: "#ff6600",
-  E: "#cc0000",
-};
-
-const COLORES_NOVA: Record<string, string> = {
-  "1": "#1a7a1a",
-  "2": "#8bc34a",
-  "3": "#ff9800",
-  "4": "#d32f2f",
-};
-
 const SIN_INFORMACION = "sin información";
 
-const COLORES_ECO_SCORE: Record<string, string> = {
-  A: "#1a7a1a",
-  B: "#53b83a",
-  C: "#ffcc00",
-  D: "#ff6600",
-  E: "#cc0000",
-};
-
-// las funciones textoNutriScore, textoEcoScore y textoGrupoNova
-// ya viven en el transformer y devuelven "Sin calificar" si el valor
-// no es valido. la pantalla solo renderiza.
-
-// muestra el detalle completo de un producto
-// recibe el codigo de barras desde la ruta y lo busca en la api de open food facts
-export default function FichaScreen() {
+export default function PantallaFicha() {
   const { id } = useLocalSearchParams<FichaParams>();
 
   const [loading, setLoading] = useState(true);
@@ -98,7 +72,6 @@ export default function FichaScreen() {
     };
   }, [id]);
 
-  // estado: cargando
   if (loading) {
     return (
       <View style={styles.container}>
@@ -108,7 +81,6 @@ export default function FichaScreen() {
     );
   }
 
-  // estado: error o producto no encontrado
   if (error || !producto) {
     return (
       <View style={styles.container}>
@@ -118,7 +90,6 @@ export default function FichaScreen() {
     );
   }
 
-  // estado: producto cargado exitosamente
   return (
     <ScrollView
       style={styles.container}
@@ -126,13 +97,11 @@ export default function FichaScreen() {
     >
       <Stack.Screen options={{ title: producto.nombre }} />
 
-      {/* nombre y marca */}
       <Text style={styles.nombre}>{producto.nombre}</Text>
       {producto.marcas ? (
         <Text style={styles.marca}>{producto.marcas}</Text>
       ) : null}
 
-      {/* imagen */}
       <View style={styles.imagenGrande}>
         {producto.imagenUrl ? (
           <Image
@@ -145,7 +114,6 @@ export default function FichaScreen() {
         )}
       </View>
 
-      {/* scores */}
       <Text style={styles.seccionTitulo}>Clasificación del producto</Text>
       <View style={styles.scoresRow}>
         <ScoreBox
@@ -168,12 +136,10 @@ export default function FichaScreen() {
         />
       </View>
 
-      {/* ingredientes */}
       <InfoSeccion titulo="Ingredientes">
         <IngredientesLista texto={producto.ingredientes} />
       </InfoSeccion>
 
-      {/* tabla nutricional */}
       <InfoSeccion titulo="Informacion nutricional (por 100g/ml)">
         <NutrienteFila label="Energía" valor={producto.nutrientes.energiaKcal} unidad="kcal" />
         <NutrienteFila label="Grasas" valor={producto.nutrientes.grasa} unidad="g" />
@@ -206,7 +172,6 @@ export default function FichaScreen() {
   );
 }
 
-// cuadro de score (nutri-score, nova, eco-score)
 function ScoreBox({
   label,
   value,
@@ -229,7 +194,6 @@ function ScoreBox({
   );
 }
 
-// seccion con titulo que puede estar vacia o llena
 function InfoSeccion({
   titulo,
   children,
@@ -245,7 +209,6 @@ function InfoSeccion({
   );
 }
 
-// lista ingredientes sin romper porcentajes con coma decimal, como 7,4%
 function IngredientesLista({ texto }: { texto: string }) {
   const ingredientes = texto
     .split(/,(?!\d)/)
@@ -268,9 +231,6 @@ function IngredientesLista({ texto }: { texto: string }) {
   );
 }
 
-// fila de la tabla nutricional
-// null = la api no devolvio el valor, se muestra "sin informacion"
-// 0 = valor real, se muestra "0.0" con la unidad
 function NutrienteFila({
   label,
   valor,

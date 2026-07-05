@@ -15,9 +15,7 @@ import { sanitizarCodigoBarras } from "@/utils/barcode";
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
 import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
 
-// ---------------------------------------------------------------------------
-// Tipos de código de barras para la cámara
-// ---------------------------------------------------------------------------
+// tipos de codigo de barras para la camara
 
 const TIPOS_BARCODE: BarcodeType[] = [
   "ean13",
@@ -27,9 +25,7 @@ const TIPOS_BARCODE: BarcodeType[] = [
   "code128",
 ];
 
-// ---------------------------------------------------------------------------
-// Estado del producto buscado
-// ---------------------------------------------------------------------------
+// estado del producto buscado
 
 type ProductState =
   | { status: "idle" }
@@ -37,25 +33,19 @@ type ProductState =
   | { status: "found"; producto: ProductoAPIDetalle }
   | { status: "not_found"; error: string };
 
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
-
-interface BarcodeScannerModalProps {
+interface ModalEscanerCodigoProps {
   visible: boolean;
   onClose: () => void;
   onProductoEncontrado: (codigo: string) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Modal del escáner
-// ---------------------------------------------------------------------------
+// modal del escaner
 
-export default function BarcodeScannerModal({
+export default function ModalEscanerCodigo({
   visible,
   onClose,
   onProductoEncontrado,
-}: BarcodeScannerModalProps) {
+}: ModalEscanerCodigoProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [scannedCode, setScannedCode] = useState<string | null>(null);
@@ -63,16 +53,16 @@ export default function BarcodeScannerModal({
     status: "idle",
   });
 
-  // Ref que indica si el modal está visible (evita setState post-close)
+  // ref que indica si el modal esta visible para evitar setState post-close
   const activoRef = useRef(false);
 
-  // Contador de generación de escaneo. Cada vez que se inicia un nuevo
+  // contador de generacion de escaneo cada vez que se inicia un nuevo
   // escaneo (al abrir el modal o al tocar "Volver a escanear") se
-  // incrementa, invalidando respuestas de fetch anteriores.
+  // incrementa, invalidando respuestas de fetch anteriores
   const scanGenerationRef = useRef(0);
 
-  // Reinicia todo el estado del escáner para permitir un nuevo escaneo.
-  // Esto invalida cualquier fetch en vuelo incrementando scanGeneration.
+  // reinicia todo el estado del escaner para permitir un nuevo escaneo
+  // esto invalida cualquier fetch en vuelo incrementando scanGeneration
   const reiniciarEstado = useCallback(() => {
     setScanned(false);
     setScannedCode(null);
@@ -80,7 +70,7 @@ export default function BarcodeScannerModal({
     scanGenerationRef.current += 1;
   }, []);
 
-  // Sincronizar activoRef con la visibilidad del modal y reiniciar al abrir
+  // sincronizar activoRef con la visibilidad del modal y reiniciar al abrir
   useEffect(() => {
     activoRef.current = visible;
     if (visible) {
@@ -90,7 +80,7 @@ export default function BarcodeScannerModal({
 
   const handleBarcodeScanned = useCallback(
     (result: BarcodeScanningResult) => {
-      // El prop onBarcodeScanned ya se desactiva cuando scanned=true,
+      // el prop onBarcodeScanned ya se desactiva cuando scanned=true
       // pero esta guardia extra cubre casos borde de concurrencia
       if (scanned) return;
 
@@ -110,7 +100,7 @@ export default function BarcodeScannerModal({
 
       fetchProductoPorCodigo(sanitizado.codigo)
         .then((res) => {
-          // Ignorar si el modal se cerró o si se inició un nuevo escaneo
+          // ignorar si el modal se cerro o si se inicio un nuevo escaneo
           if (!activoRef.current || scanGenerationRef.current !== generation) {
             return;
           }
@@ -149,12 +139,7 @@ export default function BarcodeScannerModal({
     reiniciarEstado();
   }, [reiniciarEstado]);
 
-  // -----------------------------------------------------------------------
-  // Render según permisos
-  // -----------------------------------------------------------------------
-
   const renderContent = () => {
-    // Permisos aún cargando
     if (!permission) {
       return (
         <View style={styles.centeredContainer}>
@@ -164,7 +149,6 @@ export default function BarcodeScannerModal({
       );
     }
 
-    // Permisos no concedidos
     if (!permission.granted) {
       return (
         <View style={styles.centeredContainer}>
@@ -200,7 +184,6 @@ export default function BarcodeScannerModal({
       );
     }
 
-    // Permisos concedidos — mostrar cámara
     return (
       <View style={styles.cameraWrapper}>
         <CameraView
@@ -210,7 +193,6 @@ export default function BarcodeScannerModal({
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         />
 
-        {/* Overlay con instrucciones mientras no se escaneó nada */}
         {!scanned && (
           <View style={styles.scanOverlay}>
             <View style={styles.scanFrame}>
@@ -226,7 +208,6 @@ export default function BarcodeScannerModal({
           </View>
         )}
 
-        {/* Overlay con resultado después del escaneo */}
         {scanned && (
           <ResultOverlay
             productState={productState}
@@ -236,7 +217,6 @@ export default function BarcodeScannerModal({
           />
         )}
 
-        {/* Botón de cerrar modal */}
         <Pressable style={styles.modalCloseButton} onPress={onClose}>
           <FontAwesome name="close" size={22} color="#fff" />
         </Pressable>
@@ -255,10 +235,6 @@ export default function BarcodeScannerModal({
     </Modal>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Overlay con el resultado después de escanear
-// ---------------------------------------------------------------------------
 
 function ResultOverlay({
   productState,
@@ -327,10 +303,6 @@ function ResultOverlay({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Estilos
-// ---------------------------------------------------------------------------
-
 const COLORES_MODAL = {
   fondo: "#111",
   texto: "#fff",
@@ -347,13 +319,11 @@ const COLORES_RESULT = {
 } as const;
 
 const styles = StyleSheet.create({
-  // --- Modal base ---
   modalSafe: {
     flex: 1,
     backgroundColor: COLORES_MODAL.fondo,
   },
 
-  // --- Contenedor centrado (permisos, carga) ---
   centeredContainer: {
     flex: 1,
     justifyContent: "center",
@@ -368,7 +338,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  // --- Permisos ---
   permissionTitle: {
     fontSize: 20,
     fontWeight: "700",
@@ -411,13 +380,11 @@ const styles = StyleSheet.create({
     color: COLORES_MODAL.textoSuave,
   },
 
-  // --- Cámara ---
   cameraWrapper: {
     flex: 1,
     position: "relative",
   },
 
-  // --- Overlay de escaneo ---
   scanOverlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "center",
@@ -439,7 +406,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  // --- Overlay de resultado ---
   resultOverlayContainer: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: "flex-end",
@@ -520,7 +486,6 @@ const styles = StyleSheet.create({
     color: COLORES_RESULT.acento,
   },
 
-  // --- Cerrar modal ---
   modalCloseButton: {
     position: "absolute",
     top: 16,

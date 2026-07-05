@@ -1,31 +1,23 @@
 import { RUTAS, armarRuta } from "@/constants/rutas";
+import { COLORES_NUTRI_SCORE } from "@/constants/scores";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-// lo minimo que necesita ProductCard para funcionar
-// sirve tanto para datos locales (Producto) como para datos de la api
-export type ProductoParaCard = {
+// lo minimo que necesita la tarjeta para funcionar
+// sirve tanto para datos locales como para datos de la api
+export type ProductoParaTarjeta = {
   id: string;
   nombre: string;
   marca: string;
   nutriScore: string;
 };
 
-const COLORES_NUTRI_SCORE: Record<string, string> = {
-  A: "#1a7a1a",
-  B: "#53b83a",
-  C: "#ffcc00",
-  D: "#ff6600",
-  E: "#cc0000",
-};
-
 type Props = {
-  producto: ProductoParaCard;
+  producto: ProductoParaTarjeta;
 };
 
-// tarjeta que se muestra en las listas de productos
-// al tocarla navega a la ficha del producto
-export default function ProductCard({ producto }: Props) {
+// al tocar una tarjeta se abre la ficha del producto
+export default function TarjetaProducto({ producto }: Props) {
   const navegacion = useRouter();
   const colorScore = COLORES_NUTRI_SCORE[producto.nutriScore] ?? "#888";
 
@@ -36,7 +28,6 @@ export default function ProductCard({ producto }: Props) {
         navegacion.push(armarRuta(RUTAS.FICHA, { id: producto.id }))
       }
     >
-      {/* imagen placeholder mientras no hay api real */}
       <View style={styles.imagenPlaceholder}>
         <Text style={styles.imagenEmoji}>🍽️</Text>
       </View>
