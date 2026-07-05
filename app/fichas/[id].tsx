@@ -25,8 +25,24 @@ const COLORES = {
   imagenFondo: "#e0e0e0",
 } as const;
 
-// colores para verlos mejor y mas visual para distinguir
+// colores para interpretar cada score de un vistazo: verde es mejor,
+// rojo es peor. gris se usa cuando la api no manda un valor valido
 const COLORES_NUTRI_SCORE: Record<string, string> = {
+  A: "#1a7a1a",
+  B: "#53b83a",
+  C: "#ffcc00",
+  D: "#ff6600",
+  E: "#cc0000",
+};
+
+const COLORES_NOVA: Record<number, string> = {
+  1: "#1a7a1a",
+  2: "#8bc34a",
+  3: "#ff9800",
+  4: "#d32f2f",
+};
+
+const COLORES_ECO_SCORE: Record<string, string> = {
   A: "#1a7a1a",
   B: "#53b83a",
   C: "#ffcc00",
@@ -36,10 +52,10 @@ const COLORES_NUTRI_SCORE: Record<string, string> = {
 
 // etiquetas NOVA con su descripcion, para que sea mas legible y entendible para el usuario, en lugar de solo mostrar el numero
 const ETIQUETAS_NOVA: Record<number, string> = {
-  1: "sin procesar",
-  2: "ingrediente culinario",
-  3: "procesado",
-  4: "ultraprocesado",
+  1: "Sin procesar",
+  2: "Ingrediente culinario",
+  3: "Procesado",
+  4: "Ultraprocesado",
 };
 
 // muestra el detalle completo de un producto
@@ -142,13 +158,13 @@ export default function FichaScreen() {
         <ScoreBox
           label="Procesamiento"
           value={String(producto.grupoNova)}
-          color={COLORES.textoMuted}
+          color={COLORES_NOVA[producto.grupoNova] ?? COLORES.textoMuted}
           subtitulo={ETIQUETAS_NOVA[producto.grupoNova]}
         />
         <ScoreBox
           label={"Impacto\nambiental"}
-          value={producto.ecoScore}
-          color={COLORES.textoMuted}
+          value={producto.ecoScore === "UNKNOWN" ? "?" : producto.ecoScore}
+          color={COLORES_ECO_SCORE[producto.ecoScore] ?? COLORES.textoMuted}
           subtitulo={textoEcoScore(producto.ecoScore)}
         />
       </View>
@@ -375,14 +391,14 @@ const styles = StyleSheet.create({
     color: COLORES.tarjeta,
   },
   scoreSub: {
-    fontSize: 10,
+    fontSize: 11,
     color: COLORES.textoMuted,
     marginTop: 4,
     textAlign: "center",
     flexWrap: "wrap",
     flexShrink: 1,
     width: "100%",
-    lineHeight: 13,
+    lineHeight: 14,
   },
   seccion: {
     marginBottom: 20,

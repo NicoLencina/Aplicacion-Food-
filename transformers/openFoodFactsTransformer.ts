@@ -43,16 +43,29 @@ export type ResultadoBusquedaAPI = {
   productos: ProductoAPIResumen[];
 };
 
-// limpia el texto de ingredientes que devuelve la api:
-// normaliza espacios, reemplaza guiones bajos, mejora legibilidad
-// sin alterar quimicos ni alergenos en mayuscula
+function capitalizarTexto(texto: string): string {
+  if (texto.length === 0) return texto;
+
+  return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
+}
+
+// la api trae el texto de ingredientes medio crudo: todo mayusculas,
+// palabras pegadas a numeros, porcentajes con coma decimal, a veces
+// parentesis mal puestos. esta funcion lo deja mas presentable
+// antes de que la pantalla lo reciba
 export function limpiarTextoIngredientes(texto: string): string {
   return texto
     .trim()
     .replace(/_/g, " ")
+    .replace(/([A-Za-zÁÉÍÓÚÑáéíóúñ])(\d)/g, "$1 $2")
     .replace(/\s{2,}/g, " ")
     .replace(/\s*,/g, ",")
     .replace(/,\s*/g, ", ")
+    .replace(/(\d),\s+(\d)/g, "$1,$2")
+    .replace(/\s+(\d+(?:,\d+)?%\))/g, " ($1")
+    .split(", ")
+    .map(capitalizarTexto)
+    .join(", ")
     .trim();
 }
 
@@ -61,11 +74,11 @@ export function limpiarTextoIngredientes(texto: string): string {
 // texto descriptivo para cada grado de nutri-score
 export function textoNutriScore(grado: string): string {
   const mapa: Record<string, string> = {
-    a: "excelente",
-    b: "bueno",
-    c: "aceptable",
-    d: "regular",
-    e: "poco saludable",
+    a: "Excelente",
+    b: "Bueno",
+    c: "Aceptable",
+    d: "Regular",
+    e: "Poco saludable",
   };
   return mapa[grado.toLowerCase()] ?? "desconocido";
 }
@@ -73,26 +86,26 @@ export function textoNutriScore(grado: string): string {
 // texto descriptivo para cada grado de eco-score
 export function textoEcoScore(grado: string): string {
   const mapa: Record<string, string> = {
-    a: "excelente",
-    b: "bueno",
-    c: "aceptable",
-    d: "regular",
-    e: "poco ecologico",
+    a: "Excelente",
+    b: "Bueno",
+    c: "Aceptable",
+    d: "Regular",
+    e: "Poco ecologico",
   };
   const key = grado.toLowerCase();
-  if (key === "unknown" || !mapa[key]) return "sin clasificar";
+  if (key === "unknown" || !mapa[key]) return "Sin clasificar";
   return mapa[key];
 }
 
 // texto descriptivo para grupo nova
 export function textoGrupoNova(grupo: number): string {
   const mapa: Record<number, string> = {
-    1: "sin procesar",
-    2: "ingrediente culinario",
-    3: "procesado",
-    4: "ultraprocesado",
+    1: "Sin procesar",
+    2: "Ingrediente culinario",
+    3: "Procesado",
+    4: "Ultraprocesado",
   };
-  return mapa[grupo] ?? "desconocido";
+  return mapa[grupo] ?? "Desconocido";
 }
 
 // --- transformadores ---
