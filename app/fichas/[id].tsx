@@ -36,12 +36,14 @@ const COLORES_NUTRI_SCORE: Record<string, string> = {
   E: "#cc0000",
 };
 
-const COLORES_NOVA: Record<number, string> = {
-  1: "#1a7a1a",
-  2: "#8bc34a",
-  3: "#ff9800",
-  4: "#d32f2f",
+const COLORES_NOVA: Record<string, string> = {
+  "1": "#1a7a1a",
+  "2": "#8bc34a",
+  "3": "#ff9800",
+  "4": "#d32f2f",
 };
+
+const SIN_INFORMACION = "sin información";
 
 const COLORES_ECO_SCORE: Record<string, string> = {
   A: "#1a7a1a",
@@ -154,7 +156,7 @@ export default function FichaScreen() {
         />
         <ScoreBox
           label="Procesamiento"
-          value={producto.grupoNova ? String(producto.grupoNova) : "?"}
+          value={producto.grupoNova}
           color={COLORES_NOVA[producto.grupoNova] ?? COLORES.textoMuted}
           subtitulo={textoGrupoNova(producto.grupoNova)}
         />
@@ -251,7 +253,7 @@ function IngredientesLista({ texto }: { texto: string }) {
     .filter(Boolean);
 
   if (ingredientes.length === 0) {
-    return <Text style={styles.infoTexto}>sin informacion</Text>;
+    return <Text style={styles.infoTexto}>{SIN_INFORMACION}</Text>;
   }
 
   return (
@@ -281,7 +283,7 @@ function NutrienteFila({
   subfila?: boolean;
 }) {
   const hayValor = typeof valor === "number" && Number.isFinite(valor);
-  const valorStr = hayValor ? valor.toFixed(1) : "sin información";
+  const valorStr = hayValor ? valor.toFixed(1) : SIN_INFORMACION;
 
   return (
     <View style={styles.filaNutriente}>

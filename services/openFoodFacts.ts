@@ -39,6 +39,7 @@ const CAMPOS_LISTA = [
   "nutriscore_grade",
   "ecoscore_grade",
   "nova_group",
+  "categories_tags",
 ].join(",");
 
 // --- tipos para los parametros de busqueda ---
@@ -47,6 +48,8 @@ export type BusquedaParams = {
   categoria?: string;
   marca?: string;
   etiqueta?: string;
+  pais?: string;
+  idioma?: string;
   pagina?: number;
   cantidadPorPagina?: number;
 };
@@ -95,6 +98,12 @@ export async function buscarProductos(
   }
   if (params.etiqueta) {
     filtros.push(`labels_tags=${encodeURIComponent(params.etiqueta)}`);
+  }
+  if (params.pais) {
+    filtros.push(`countries_tags=${encodeURIComponent(params.pais)}`);
+  }
+  if (params.idioma) {
+    filtros.push(`languages_tags=${encodeURIComponent(params.idioma)}`);
   }
 
   const pagina = params.pagina ?? 1;

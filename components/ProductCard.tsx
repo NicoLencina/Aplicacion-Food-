@@ -1,7 +1,15 @@
 import { RUTAS, armarRuta } from "@/constants/rutas";
-import type { Producto } from "@/data/productos";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
+// lo minimo que necesita ProductCard para funcionar
+// sirve tanto para datos locales (Producto) como para datos de la api
+export type ProductoParaCard = {
+  id: string;
+  nombre: string;
+  marca: string;
+  nutriScore: string;
+};
 
 const COLORES_NUTRI_SCORE: Record<string, string> = {
   A: "#1a7a1a",
@@ -12,7 +20,7 @@ const COLORES_NUTRI_SCORE: Record<string, string> = {
 };
 
 type Props = {
-  producto: Producto;
+  producto: ProductoParaCard;
 };
 
 // tarjeta que se muestra en las listas de productos

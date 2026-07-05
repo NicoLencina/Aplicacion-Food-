@@ -25,7 +25,7 @@ export type ProductoAPIDetalle = {
   imagenUrl: string;
   nutriScore: string;
   ecoScore: string;
-  grupoNova: number;
+  grupoNova: string;
   ingredientes: string;
   nutrientes: NutrientesAPI;
 };
@@ -37,7 +37,8 @@ export type ProductoAPIResumen = {
   imagenUrl: string;
   nutriScore: string;
   ecoScore: string;
-  grupoNova: number;
+  grupoNova: string;
+  categoriesTags: string[];
 };
 
 export type ResultadoBusquedaAPI = {
@@ -107,12 +108,12 @@ export function textoEcoScore(grado: string): string {
 }
 
 // texto descriptivo para grupo nova
-export function textoGrupoNova(grupo: number): string {
-  const mapa: Record<number, string> = {
-    1: "Sin procesar",
-    2: "Ingrediente culinario",
-    3: "Procesado",
-    4: "Ultraprocesado",
+export function textoGrupoNova(grupo: string): string {
+  const mapa: Record<string, string> = {
+    "1": "Sin procesar",
+    "2": "Ingrediente culinario",
+    "3": "Procesado",
+    "4": "Ultraprocesado",
   };
   return mapa[grupo] ?? "Sin calificar";
 }
@@ -142,6 +143,13 @@ function textoSeguro(valor: unknown, fallback: string): string {
 
 // normaliza valores de scores (nutriScore, ecoScore) a un formato consistente.
 // si el valor es null, undefined, vacio, "unknown" o "not-applicable" devuelve el fallback
+function normalizarGrupoNova(raw: unknown): string {
+  if (raw == null) return "?";
+  const num = Number(raw);
+  if (Number.isInteger(num) && num >= 1 && num <= 4) return String(num);
+  return "?";
+}
+
 function normalizarScore(raw: unknown, fallback: string): string {
   if (raw == null) return fallback;
   const texto = String(raw).trim().toUpperCase();
@@ -191,7 +199,7 @@ export function transformarProducto(
     imagenUrl: textoSeguro(raw.image_url, ""),
     nutriScore: normalizarScore(raw.nutriscore_grade, "?"),
     ecoScore: normalizarScore(raw.ecoscore_grade, "?"),
-    grupoNova: valorSeguro(raw.nova_group, 0),
+    grupoNova: normalizarGrupoNova(raw.nova_group),
     ingredientes: limpiarTextoIngredientes(
       primerTextoDisponible(
         [raw.ingredients_text_es, raw.ingredients_text_en, raw.ingredients_text],
@@ -224,6 +232,13 @@ export function transformarRespuestaProducto(
 function transformarItemBusqueda(
   raw: Record<string, unknown>
 ): ProductoAPIResumen {
+  // extraer categories_tags de forma segura
+  // la api devuelve un array de strings como ["en:beverages", "en:sodas"]
+  const rawTags = raw.categories_tags;
+  const categoriesTags = Array.isArray(rawTags)
+    ? rawTags.filter((t): t is string => typeof t === "string")
+    : [];
+
   return {
     codigoBarras: textoSeguro(raw.code, ""),
     nombre: primerTextoDisponible(
@@ -234,11 +249,14 @@ function transformarItemBusqueda(
     imagenUrl: textoSeguro(raw.image_url, ""),
     nutriScore: normalizarScore(raw.nutriscore_grade, "?"),
     ecoScore: normalizarScore(raw.ecoscore_grade, "?"),
-    grupoNova: valorSeguro(raw.nova_group, 0),
+    grupoNova: normalizarGrupoNova(raw.nova_group),
+    categoriesTags,
   };
 }
 
 // convierte la respuesta de /api/v2/search
+// ademas filtra productos sin codigo de barras para evitar
+// que la app intente navegar a fichas que no existen
 export function transformarResultadoBusqueda(
   raw: Record<string, unknown>
 ): ResultadoBusquedaAPI {
@@ -247,6 +265,8 @@ export function transformarResultadoBusqueda(
   return {
     total: valorSeguro(raw.count, 0),
     pagina: valorSeguro(raw.page, 1),
-    productos: (productosRaw ?? []).map(transformarItemBusqueda),
+    productos: (productosRaw ?? [])
+      .map(transformarItemBusqueda)
+      .filter((p) => p.codigoBarras !== ""),
   };
 }
