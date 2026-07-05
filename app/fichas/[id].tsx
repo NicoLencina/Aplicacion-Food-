@@ -12,6 +12,19 @@ type FichaParams = {
   id: string;
 };
 
+const COLORES = {
+  principal: "#2a7f9e",
+  texto: "#222",
+  textoMedio: "#444",
+  textoSuave: "#666",
+  textoMuted: "#888",
+  fondo: "#f4f4f4",
+  tarjeta: "#fff",
+  borde: "#e0e0e0",
+  separador: "#e8e8e8",
+  imagenFondo: "#e0e0e0",
+} as const;
+
 // colores para verlos mejor y mas visual para distinguir
 const COLORES_NUTRI_SCORE: Record<string, string> = {
   A: "#1a7a1a",
@@ -98,6 +111,12 @@ export default function FichaScreen() {
     >
       <Stack.Screen options={{ title: producto.nombre }} />
 
+      {/* nombre y marca */}
+      <Text style={styles.nombre}>{producto.nombre}</Text>
+      {producto.marcas ? (
+        <Text style={styles.marca}>{producto.marcas}</Text>
+      ) : null}
+
       {/* imagen */}
       <View style={styles.imagenGrande}>
         {producto.imagenUrl ? (
@@ -111,39 +130,32 @@ export default function FichaScreen() {
         )}
       </View>
 
-      {/* nombre y marca */}
-      <Text style={styles.nombre}>{producto.nombre}</Text>
-      {producto.marcas ? (
-        <Text style={styles.marca}>{producto.marcas}</Text>
-      ) : null}
-
       {/* scores */}
+      <Text style={styles.seccionTitulo}>Clasificación del producto</Text>
       <View style={styles.scoresRow}>
         <ScoreBox
           label={"Calidad\nnutricional"}
           value={producto.nutriScore}
-          color={COLORES_NUTRI_SCORE[producto.nutriScore] ?? "#888"}
+          color={COLORES_NUTRI_SCORE[producto.nutriScore] ?? COLORES.textoMuted}
           subtitulo={textoNutriScore(producto.nutriScore)}
         />
         <ScoreBox
           label="Procesamiento"
           value={String(producto.grupoNova)}
-          color="#888"
+          color={COLORES.textoMuted}
           subtitulo={ETIQUETAS_NOVA[producto.grupoNova]}
         />
         <ScoreBox
           label={"Impacto\nambiental"}
           value={producto.ecoScore}
-          color="#888"
+          color={COLORES.textoMuted}
           subtitulo={textoEcoScore(producto.ecoScore)}
         />
       </View>
 
       {/* ingredientes */}
       <InfoSeccion titulo="Ingredientes">
-        <Text style={styles.infoTexto}>
-          {producto.ingredientes || "sin informacion"}
-        </Text>
+        <IngredientesLista texto={producto.ingredientes} />
       </InfoSeccion>
 
       {/* tabla nutricional */}
@@ -151,9 +163,10 @@ export default function FichaScreen() {
         <NutrienteFila label="Energia (kJ)" valor={producto.nutrientes.energia} />
         <NutrienteFila label="Grasas" valor={producto.nutrientes.grasa} unidad="g" />
         <NutrienteFila
-          label="  de las cuales saturadas"
+          label="de las cuales saturadas"
           valor={producto.nutrientes.grasaSaturada}
           unidad="g"
+          subfila
         />
         <NutrienteFila
           label="Hidratos de carbono"
@@ -161,9 +174,10 @@ export default function FichaScreen() {
           unidad="g"
         />
         <NutrienteFila
-          label="  de los cuales azucares"
+          label="de los cuales azucares"
           valor={producto.nutrientes.azucares}
           unidad="g"
+          subfila
         />
         <NutrienteFila label="Fibra" valor={producto.nutrientes.fibra} unidad="g" />
         <NutrienteFila
@@ -216,21 +230,55 @@ function InfoSeccion({
   );
 }
 
+// lista ingredientes sin romper porcentajes con coma decimal, como 7,4%
+function IngredientesLista({ texto }: { texto: string }) {
+  const ingredientes = texto
+    .split(/,(?!\d)/)
+    .map((ingrediente) => ingrediente.trim())
+    .filter(Boolean);
+
+  if (ingredientes.length === 0) {
+    return <Text style={styles.infoTexto}>sin informacion</Text>;
+  }
+
+  return (
+    <View style={styles.listaIngredientes}>
+      {ingredientes.map((ingrediente) => (
+        <View key={ingrediente} style={styles.filaIngrediente}>
+          <Text style={styles.bulletIngrediente}>•</Text>
+          <Text style={styles.textoIngrediente}>{ingrediente}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 // fila de la tabla nutricional
 function NutrienteFila({
   label,
   valor,
   unidad,
+  subfila = false,
 }: {
   label: string;
   valor: number;
   unidad?: string;
+  subfila?: boolean;
 }) {
   const valorStr = valor !== undefined && valor !== null ? valor.toFixed(1) : "—";
 
   return (
     <View style={styles.filaNutriente}>
-      <Text style={styles.filaLabel}>{label}</Text>
+      <Text style={styles.filaLabel}>
+        {subfila ? (
+          <>
+            <Text style={styles.flechaSubfila}>  ↳ </Text>
+            {label}
+          </>
+        ) : (
+          label
+        )}
+      </Text>
       <Text style={styles.filaValor}>
         {valorStr}
         {unidad ? ` ${unidad}` : ""}
@@ -242,7 +290,7 @@ function NutrienteFila({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f4f4",
+    backgroundColor: COLORES.fondo,
   },
   scrollContent: {
     padding: 20,
@@ -252,13 +300,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 60,
     fontSize: 18,
-    color: "#555",
+    color: COLORES.textoSuave,
   },
   imagenGrande: {
     width: "100%",
     height: 200,
     borderRadius: 16,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: COLORES.imagenFondo,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -272,16 +320,18 @@ const styles = StyleSheet.create({
     fontSize: 64,
   },
   nombre: {
-    fontSize: 26,
-    fontWeight: "800",
-    color: "#222",
+    fontSize: 30,
+    fontWeight: "900",
+    color: COLORES.principal,
+    textAlign: "center",
     flexWrap: "wrap",
   },
   marca: {
     fontSize: 16,
-    color: "#666",
+    color: COLORES.textoSuave,
     marginTop: 4,
     marginBottom: 16,
+    textAlign: "center",
     flexWrap: "wrap",
   },
   scoresRow: {
@@ -293,18 +343,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
+    backgroundColor: COLORES.tarjeta,
     borderRadius: 12,
     padding: 10,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: COLORES.borde,
   },
   scoreLabel: {
     width: "100%",
     height: 32,
     fontSize: 12,
     fontWeight: "700",
-    color: "#888",
+    color: COLORES.principal,
     marginBottom: 6,
     textAlign: "center",
     textAlignVertical: "center",
@@ -322,11 +372,11 @@ const styles = StyleSheet.create({
   scoreValor: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#fff",
+    color: COLORES.tarjeta,
   },
   scoreSub: {
     fontSize: 10,
-    color: "#888",
+    color: COLORES.textoMuted,
     marginTop: 4,
     textAlign: "center",
     flexWrap: "wrap",
@@ -338,34 +388,56 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   seccionTitulo: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#888",
-    textTransform: "uppercase",
-    marginBottom: 8,
-    letterSpacing: 0.5,
+    fontSize: 18,
+    fontWeight: "800",
+    color: COLORES.principal,
+    marginBottom: 10,
   },
   infoTexto: {
     fontSize: 15,
-    color: "#333",
+    color: COLORES.texto,
     lineHeight: 22,
     flexWrap: "wrap",
+  },
+  listaIngredientes: {
+    gap: 3,
+  },
+  filaIngrediente: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  bulletIngrediente: {
+    width: 18,
+    fontSize: 17,
+    lineHeight: 20,
+    color: COLORES.principal,
+  },
+  textoIngrediente: {
+    flex: 1,
+    fontSize: 15,
+    lineHeight: 20,
+    color: COLORES.texto,
   },
   filaNutriente: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingVertical: 8,
+    paddingVertical: 5,
     borderBottomWidth: 1,
-    borderBottomColor: "#e8e8e8",
+    borderBottomColor: COLORES.separador,
   },
   filaLabel: {
-    fontSize: 14,
-    color: "#444",
+    fontSize: 15,
+    color: COLORES.textoMedio,
     flex: 1,
   },
+  flechaSubfila: {
+    fontSize: 20,
+    fontWeight: "900",
+    color: COLORES.principal,
+  },
   filaValor: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
-    color: "#222",
+    color: COLORES.texto,
   },
 });
