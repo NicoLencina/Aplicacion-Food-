@@ -256,8 +256,8 @@ function IngredientesLista({ texto }: { texto: string }) {
 
   return (
     <View style={styles.listaIngredientes}>
-      {ingredientes.map((ingrediente) => (
-        <View key={ingrediente} style={styles.filaIngrediente}>
+      {ingredientes.map((ingrediente, index) => (
+        <View key={`${ingrediente}-${index}`} style={styles.filaIngrediente}>
           <Text style={styles.bulletIngrediente}>•</Text>
           <Text style={styles.textoIngrediente}>{ingrediente}</Text>
         </View>
@@ -280,7 +280,7 @@ function NutrienteFila({
   unidad?: string;
   subfila?: boolean;
 }) {
-  const hayValor = valor !== null;
+  const hayValor = typeof valor === "number" && Number.isFinite(valor);
   const valorStr = hayValor ? valor.toFixed(1) : "sin información";
 
   return (
