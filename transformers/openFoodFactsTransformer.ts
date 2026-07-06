@@ -11,11 +11,20 @@ export type NutrientesAPI = {
   energiaKcal: number | null;
   grasa: number | null;
   grasaSaturada: number | null;
+  grasaMonoinsaturada: number | null;
+  grasaPoliinsaturada: number | null;
+  grasaTrans: number | null;
+  colesterol: number | null;
   carbohidratos: number | null;
   azucares: number | null;
   fibra: number | null;
   proteina: number | null;
   sal: number | null;
+  sodio: number | null;
+  vitaminaA: number | null;
+  vitaminaC: number | null;
+  calcio: number | null;
+  hierro: number | null;
 };
 
 export type ProductoAPIDetalle = {
@@ -174,11 +183,20 @@ function transformarNutrientes(raw: Record<string, unknown> | undefined): Nutrie
     energiaKcal: valorNutricionalSeguro(raw?.["energy-kcal_100g"]),
     grasa: valorNutricionalSeguro(raw?.["fat_100g"]),
     grasaSaturada: valorNutricionalSeguro(raw?.["saturated-fat_100g"]),
+    grasaMonoinsaturada: valorNutricionalSeguro(raw?.["monounsaturated-fat_100g"]),
+    grasaPoliinsaturada: valorNutricionalSeguro(raw?.["polyunsaturated-fat_100g"]),
+    grasaTrans: valorNutricionalSeguro(raw?.["trans-fat_100g"]),
+    colesterol: valorNutricionalSeguro(raw?.["cholesterol_100g"]),
     carbohidratos: valorNutricionalSeguro(raw?.["carbohydrates_100g"]),
     azucares: valorNutricionalSeguro(raw?.["sugars_100g"]),
     fibra: valorNutricionalSeguro(raw?.["fiber_100g"]),
     proteina: valorNutricionalSeguro(raw?.["proteins_100g"]),
     sal: valorNutricionalSeguro(raw?.["salt_100g"]),
+    sodio: valorNutricionalSeguro(raw?.["sodium_100g"]),
+    vitaminaA: valorNutricionalSeguro(raw?.["vitamin-a_100g"]),
+    vitaminaC: valorNutricionalSeguro(raw?.["vitamin-c_100g"]),
+    calcio: valorNutricionalSeguro(raw?.["calcium_100g"]),
+    hierro: valorNutricionalSeguro(raw?.["iron_100g"]),
   };
 }
 

@@ -177,7 +177,8 @@ export default function PantallaFicha() {
       </InfoSeccion>
 
       <InfoSeccion titulo="Informacion nutricional (por 100g/ml)">
-        <NutrienteFila label="Energía" valor={producto.nutrientes.energiaKcal} unidad="kcal" />
+        <NutrienteFila label="Energia" valor={producto.nutrientes.energiaKcal} unidad="kcal" />
+        <NutrienteFila label="Energia" valor={producto.nutrientes.energia} unidad="kJ" />
         <NutrienteFila label="Grasas" valor={producto.nutrientes.grasa} unidad="g" />
         <NutrienteFila
           label="de las cuales saturadas"
@@ -185,6 +186,25 @@ export default function PantallaFicha() {
           unidad="g"
           subfila
         />
+        <NutrienteFila
+          label="monoinsaturadas"
+          valor={producto.nutrientes.grasaMonoinsaturada}
+          unidad="g"
+          subfila
+        />
+        <NutrienteFila
+          label="poliinsaturadas"
+          valor={producto.nutrientes.grasaPoliinsaturada}
+          unidad="g"
+          subfila
+        />
+        <NutrienteFila
+          label="trans"
+          valor={producto.nutrientes.grasaTrans}
+          unidad="g"
+          subfila
+        />
+        <NutrienteFila label="Colesterol" valor={producto.nutrientes.colesterol} unidad="mg" />
         <NutrienteFila
           label="Hidratos de carbono"
           valor={producto.nutrientes.carbohidratos}
@@ -203,6 +223,19 @@ export default function PantallaFicha() {
           unidad="g"
         />
         <NutrienteFila label="Sal" valor={producto.nutrientes.sal} unidad="g" />
+        <NutrienteFila label="Sodio" valor={producto.nutrientes.sodio} unidad="g" />
+        <NutrienteFila
+          label="Vitamina A"
+          valor={producto.nutrientes.vitaminaA}
+          unidad="µg"
+        />
+        <NutrienteFila
+          label="Vitamina C"
+          valor={producto.nutrientes.vitaminaC}
+          unidad="mg"
+        />
+        <NutrienteFila label="Calcio" valor={producto.nutrientes.calcio} unidad="mg" />
+        <NutrienteFila label="Hierro" valor={producto.nutrientes.hierro} unidad="mg" />
       </InfoSeccion>
     </ScrollView>
   );
