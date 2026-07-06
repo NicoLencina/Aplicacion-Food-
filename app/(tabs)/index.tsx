@@ -125,8 +125,8 @@ function GrillaCategorias({ solo }: { solo?: typeof categorias }) {
   const datos = solo ?? categorias;
   return (
     <View style={styles.bloqueLista}>
-      <View style={styles.barraCategoria}>
-        <Text style={styles.barraCategoriaText}>Categorias</Text>
+      <View style={styles.barraSeccion}>
+        <Text style={styles.barraSeccionText}>Categorias</Text>
       </View>
       {datos.length === 0 ? null : (
         <View style={styles.grillaCategorias}>
@@ -189,7 +189,9 @@ function CarruselMarcas({ solo }: { solo?: typeof marcas }) {
   if (datos.length === 0) return null;
   return (
     <View style={styles.bloqueLista}>
-      <Text style={styles.tituloLista}>Marcas</Text>
+      <View style={styles.barraSeccion}>
+        <Text style={styles.barraSeccionText}>Marcas</Text>
+      </View>
       <Text style={styles.descripcion}>Opciones organizadas por empresa</Text>
       <ScrollView
         horizontal
@@ -204,8 +206,12 @@ function CarruselMarcas({ solo }: { solo?: typeof marcas }) {
               navegacion.push(armarRuta(RUTAS.MARCA, { nombre: marca.id }))
             }
           >
-            <View style={styles.imagenPlaceholder} />
-            <Text style={styles.marcaText}>{marca.nombre}</Text>
+            <View style={styles.marcaCardTop}>
+              <View style={styles.imagenPlaceholder} />
+            </View>
+            <View style={styles.marcaCardBottom}>
+              <Text style={styles.marcaCardBottomText} numberOfLines={1} ellipsizeMode="tail">{marca.nombre}</Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -312,14 +318,14 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e0e0e0",
     paddingBottom: 16,
   },
-  barraCategoria: {
+  barraSeccion: {
     width: "100%",
     backgroundColor: "#2a7f9e",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
   },
-  barraCategoriaText: {
+  barraSeccionText: {
     fontSize: 20,
     fontWeight: "700",
     color: "#fff",
@@ -410,13 +416,31 @@ const styles = StyleSheet.create({
     width: 100,
     height: 130,
     borderRadius: 16,
+    marginRight: 12,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#dddddd",
+  },
+  marcaCardTop: {
+    flex: 1,
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "#dddddd",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  marcaCardBottom: {
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+    alignItems: "center",
+  },
+  marcaCardBottomText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
   },
   imagenPlaceholder: {
     width: 52,
