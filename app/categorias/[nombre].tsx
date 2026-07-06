@@ -6,7 +6,7 @@ import { buscarProductos } from "@/services/openFoodFacts";
 import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -15,10 +15,7 @@ type CategoriaParams = {
 };
 
 // constantes de fetching y visualizacion
-// se pide un lote grande a la api para tener margen de filtrado post-api
-// la api es colaborativa y las categorias pueden venir con ruido
-const CANTIDAD_A_FETCH = 60;
-const CANTIDAD_A_MOSTRAR = 20;
+const PRODUCTOS_POR_PAGINA = 20;
 const PAIS_ARGENTINA = "en:argentina";
 
 // --- filtrado post-api ---
@@ -112,6 +109,16 @@ function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
   };
 }
 
+// evita repetir productos si la api devuelve codigos duplicados entre paginas
+function unirSinDuplicados(
+  actuales: ProductoParaTarjeta[],
+  nuevos: ProductoParaTarjeta[]
+) {
+  const ids = new Set(actuales.map((item) => item.id));
+  const filtrados = nuevos.filter((item) => !ids.has(item.id));
+  return [...actuales, ...filtrados];
+}
+
 // muestra los productos de la api que pertenecen a esta categoria
 export default function PantallaCategoria() {
   const { nombre } = useLocalSearchParams<CategoriaParams>();
@@ -119,78 +126,97 @@ export default function PantallaCategoria() {
   const nombreVisible = categoria?.nombre ?? nombre;
 
   const [cargando, setCargando] = useState(true);
+  const [cargandoMas, setCargandoMas] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [todosLosItems, setTodosLosItems] = useState<ProductoParaTarjeta[]>([]);
-  const [cantidadAMostrar, setCantidadAMostrar] = useState(CANTIDAD_A_MOSTRAR);
+  const [items, setItems] = useState<ProductoParaTarjeta[]>([]);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const cargaActivaRef = useRef(0);
 
-  // items visibles: slice del listado filtrado completo
-  const items = todosLosItems.slice(0, cantidadAMostrar);
-  const hayMasItems = cantidadAMostrar < todosLosItems.length;
-
+  // carga inicial cuando se abre la pantalla o cambia la categoria
   useEffect(() => {
     if (!nombre) return;
 
-    let activo = true;
-    setCargando(true);
-    setError(null);
-    setTodosLosItems([]);
-    setCantidadAMostrar(CANTIDAD_A_MOSTRAR);
-
     const tagOFF = categorias.find((c) => c.id === nombre)?.tagOFF;
 
-    // si la categoria no tiene equivalente en off, mostramos error
     if (!tagOFF) {
-      if (activo) {
-        setError(`categoria "${nombre}" no tiene equivalente en open food facts`);
-        setCargando(false);
-      }
+      setError(`categoria "${nombre}" no tiene equivalente en open food facts`);
+      setCargando(false);
       return;
     }
+
+    const cargaId = cargaActivaRef.current + 1;
+    cargaActivaRef.current = cargaId;
+    setCargando(true);
+    setError(null);
+    setItems([]);
+    setPagina(1);
+    setTotal(0);
 
     buscarProductos({
       categoria: tagOFF,
       pais: PAIS_ARGENTINA,
-      cantidadPorPagina: CANTIDAD_A_FETCH,
+      pagina: 1,
+      cantidadPorPagina: PRODUCTOS_POR_PAGINA,
     })
       .then((res) => {
-        if (!activo) return;
+        if (cargaActivaRef.current !== cargaId) return;
 
         const ordenados = ordenarPriorizandoTags(res.productos, REGLAS_FILTRO[nombre]);
-
-        // si tras filtrar no queda nada, preferimos mostrar vacio
-        // a mostrar productos de categorias equivocadas
-        if (ordenados.length === 0) {
-          setTodosLosItems([]);
-        } else {
-          // deduplica por codigo de barras por si la api repite
-          const ids = new Set<string>();
-          const unicos = ordenados.filter((p) => {
-            if (ids.has(p.codigoBarras)) return false;
-            ids.add(p.codigoBarras);
-            return true;
-          });
-          setTodosLosItems(unicos.map(aProductoTarjeta));
-        }
-        setCantidadAMostrar(CANTIDAD_A_MOSTRAR);
+        setItems(ordenados.map(aProductoTarjeta));
+        setTotal(res.total);
       })
       .catch((e: unknown) => {
-        if (!activo) return;
+        if (cargaActivaRef.current !== cargaId) return;
         setError(mensajeErrorAmigable(e));
       })
       .finally(() => {
-        if (activo) setCargando(false);
+        if (cargaActivaRef.current === cargaId) setCargando(false);
       });
 
     return () => {
-      activo = false;
+      if (cargaActivaRef.current === cargaId) {
+        cargaActivaRef.current = cargaId + 1;
+      }
     };
   }, [nombre]);
 
-  // muestra los siguientes N productos del listado filtrado
-  // sin pedirle mas datos a la api (ya estan en todosLosItems)
+  // carga la pagina siguiente y acumula productos nuevos
   function cargarMas() {
-    setCantidadAMostrar((prev) => prev + CANTIDAD_A_MOSTRAR);
+    if (cargandoMas) return;
+
+    const tagOFF = categorias.find((c) => c.id === nombre)?.tagOFF;
+    if (!tagOFF) return;
+
+    const cargaId = cargaActivaRef.current;
+    const proxPagina = pagina + 1;
+    setCargandoMas(true);
+
+    buscarProductos({
+      categoria: tagOFF,
+      pais: PAIS_ARGENTINA,
+      pagina: proxPagina,
+      cantidadPorPagina: PRODUCTOS_POR_PAGINA,
+    })
+      .then((res) => {
+        if (cargaActivaRef.current !== cargaId) return;
+
+        const ordenados = ordenarPriorizandoTags(res.productos, REGLAS_FILTRO[nombre]);
+        setItems((prev) => unirSinDuplicados(prev, ordenados.map(aProductoTarjeta)));
+        setPagina(proxPagina);
+        setTotal(res.total);
+      })
+      .catch(() => {
+        // si falla la pagina siguiente, no mostramos error al usuario
+        // simplemente no se agregan productos nuevos
+      })
+      .finally(() => {
+        if (cargaActivaRef.current === cargaId) setCargandoMas(false);
+      });
   }
+
+  const noHayMas = items.length >= total;
+  const cargarMasAlFinal = !noHayMas && items.length > 0;
 
   const insets = useSafeAreaInsets();
 
@@ -222,11 +248,14 @@ export default function PantallaCategoria() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <TarjetaProducto producto={item} />}
           contentContainerStyle={styles.lista}
+          onEndReached={cargarMasAlFinal ? cargarMas : undefined}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={
-            hayMasItems ? (
-              <Pressable style={styles.botonVerMas} onPress={cargarMas}>
-                <Text style={styles.indicador}>ver mas</Text>
-              </Pressable>
+            cargarMasAlFinal ? (
+              <View style={styles.cargandoMas}>
+                <ActivityIndicator size="small" color="#2a7f9e" />
+                <Text style={styles.textoCargandoMas}>cargando mas productos...</Text>
+              </View>
             ) : null
           }
         />
@@ -265,18 +294,15 @@ const styles = StyleSheet.create({
     color: "#cc0000",
     textAlign: "center",
   },
-  botonVerMas: {
-    backgroundColor: "#2a7f9e",
-    paddingVertical: 14,
-    borderRadius: 12,
+  cargandoMas: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 12,
-    marginBottom: 20,
+    gap: 10,
+    paddingVertical: 16,
   },
-  indicador: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+  textoCargandoMas: {
+    fontSize: 14,
+    color: "#888",
   },
 });

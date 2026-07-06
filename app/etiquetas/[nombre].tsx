@@ -120,7 +120,7 @@ export default function PantallaEtiqueta() {
   }
 
   const noHayMas = items.length >= total;
-  const mostrarBotonVerMas = !noHayMas && items.length > 0;
+  const cargarMasAlFinal = !noHayMas && items.length > 0;
 
   if (!tagOFF) {
     return (
@@ -169,19 +169,14 @@ export default function PantallaEtiqueta() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <TarjetaProducto producto={item} />}
           contentContainerStyle={styles.lista}
+          onEndReached={cargarMasAlFinal ? cargarMas : undefined}
+          onEndReachedThreshold={0.3}
           ListFooterComponent={
-            mostrarBotonVerMas ? (
-              <Pressable
-                style={styles.botonVerMas}
-                onPress={cargarMas}
-                disabled={cargandoMas}
-              >
-                {cargandoMas ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.indicador}>ver mas</Text>
-                )}
-              </Pressable>
+            cargarMasAlFinal ? (
+              <View style={styles.cargandoMas}>
+                <ActivityIndicator size="small" color="#2a7f9e" />
+                <Text style={styles.textoCargandoMas}>cargando mas productos...</Text>
+              </View>
             ) : null
           }
         />
@@ -220,18 +215,15 @@ const styles = StyleSheet.create({
     color: "#cc0000",
     textAlign: "center",
   },
-  botonVerMas: {
-    backgroundColor: "#2a7f9e",
-    paddingVertical: 14,
-    borderRadius: 12,
+  cargandoMas: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 12,
-    marginBottom: 20,
+    gap: 10,
+    paddingVertical: 16,
   },
-  indicador: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+  textoCargandoMas: {
+    fontSize: 14,
+    color: "#888",
   },
 });
