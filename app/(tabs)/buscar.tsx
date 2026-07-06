@@ -18,6 +18,7 @@ import {
 import { sanitizarCodigoBarras } from "@/utils/barcode";
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
 import { mensajeErrorAmigable } from "@/utils/errores";
+import { agregarAlHistorial } from "@/services/historial";
 
 // tipos de codigo de barras que soporta la camara
 
@@ -81,6 +82,12 @@ export default function PantallaBusqueda() {
         if (res.encontrado && res.producto) {
           setCodigoInput("");
           cerrarTeclado();
+          agregarAlHistorial({
+            id: res.producto.codigoBarras,
+            nombre: res.producto.nombre,
+            marca: res.producto.marcas,
+            nutriScore: res.producto.nutriScore,
+          });
           router.push(`/fichas/${encodeURIComponent(codigo)}`);
         } else {
           setErrorCodigo("Producto no encontrado");
