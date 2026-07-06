@@ -8,7 +8,7 @@ import type { ProductoHistorial } from "@/services/historial";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
@@ -92,6 +92,11 @@ type ItemLista = {
   nombre: string;
 };
 
+// este objeto relaciona cada categoria con una imagen local
+const IMAGENES_CATEGORIA: Record<string, any> = {
+  beverages: require("@/assets/images/categorias/bebidas.jpg"),
+};
+
 // este objeto relaciona cada categoria con un icono visual
 const ICONOS_CATEGORIA: Record<string, string> = {
   beverages: "coffee",
@@ -138,20 +143,34 @@ function GrillaCategorias({ solo }: { solo?: typeof categorias }) {
 
 function TarjetaCategoria({ item, onPress }: { item: ItemLista; onPress: () => void }) {
   const icono = ICONOS_CATEGORIA[item.id] ?? "question";
+  const imagen = IMAGENES_CATEGORIA[item.id];
   return (
     // cada tarjeta representa una opcion de categoria
     <Pressable style={styles.tarjeta} onPress={onPress}>
-      <View style={styles.tarjetaInterna}>
-        <FontAwesome
-          name={icono as any}
-          size={32}
-          color="#555"
-          style={styles.iconoTarjeta}
-        />
-        <Text style={styles.textoTarjeta}>
-          {item.nombre.charAt(0).toUpperCase() + item.nombre.slice(1)}
-        </Text>
-      </View>
+      {imagen ? (
+        <View style={styles.tarjetaConImagen}>
+          <View style={styles.imagenWrapper}>
+            <Image source={imagen} style={styles.imagenCategoria} resizeMode="contain" />
+          </View>
+          <View style={styles.textoOverlay}>
+            <Text style={styles.textoOverlayText}>
+              {item.nombre.charAt(0).toUpperCase() + item.nombre.slice(1)}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <View style={styles.tarjetaInterna}>
+          <FontAwesome
+            name={icono as any}
+            size={32}
+            color="#555"
+            style={styles.iconoTarjeta}
+          />
+          <Text style={styles.textoTarjeta}>
+            {item.nombre.charAt(0).toUpperCase() + item.nombre.slice(1)}
+          </Text>
+        </View>
+      )}
     </Pressable>
   );
 }
@@ -333,6 +352,35 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     color: "#222",
+  },
+  tarjetaConImagen: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#dddddd",
+  },
+  imagenWrapper: {
+    flex: 1,
+    padding: 8,
+  },
+  imagenCategoria: {
+    flex: 1,
+    width: "100%",
+    borderRadius: 8,
+  },
+  textoOverlay: {
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    alignItems: "center",
+  },
+  textoOverlayText: {
+    fontSize: 17,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
   },
   descripcion: {
     fontSize: 14,
