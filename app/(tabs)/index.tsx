@@ -5,7 +5,7 @@ import { marcas } from "@/data/marcas";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
@@ -32,7 +32,8 @@ export default function IndexScreen() {
     etiquetasFiltradas.length > 0;
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
+      <View style={{ flex: 1, backgroundColor: "#f4f4f4" }}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* encabezado principal de la pantalla */}
         <View style={{ width: "100%", gap: 8 }}>
@@ -70,6 +71,7 @@ export default function IndexScreen() {
           <CarruselMarcas solo={busqueda ? marcasFiltradas : undefined} />
         )}
       </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -103,21 +105,21 @@ function GrillaCategorias({ solo }: { solo?: typeof categorias }) {
         <Text style={styles.textoSecundario}>ver lista</Text>
       </View>
       {datos.length === 0 ? null : (
-        <FlatList
-          data={datos}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          scrollEnabled={false}
-          columnWrapperStyle={styles.filaGrilla}
-          renderItem={({ item }) => (
-            <TarjetaCategoria
-              item={item}
-              onPress={() =>
-                navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: item.id }))
-              }
-            />
-          )}
-        />
+        <View style={styles.grillaCategorias}>
+          {Array.from({ length: Math.ceil(datos.length / 2) }, (_, i) => (
+            <View key={i} style={styles.filaGrilla}>
+              {datos.slice(i * 2, i * 2 + 2).map((item) => (
+                <TarjetaCategoria
+                  key={item.id}
+                  item={item}
+                  onPress={() =>
+                    navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: item.id }))
+                  }
+                />
+              ))}
+            </View>
+          ))}
+        </View>
       )}
     </View>
   );
@@ -256,6 +258,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: "#333",
   },
+  grillaCategorias: {
+    gap: 12,
+  },
   tarjeta: {
     flex: 1,
     aspectRatio: 1,
@@ -263,6 +268,7 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   filaGrilla: {
+    flexDirection: "row",
     gap: 12,
     marginBottom: 12,
   },

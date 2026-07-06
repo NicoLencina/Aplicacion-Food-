@@ -76,7 +76,8 @@ export default function PantallaFavoritos() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
+      <View style={styles.container}>
       <View style={styles.encabezado}>
         <Text style={styles.titulo}>Favoritos</Text>
         {favoritos.length > 0 && (
@@ -150,6 +151,7 @@ export default function PantallaFavoritos() {
           )}
         />
       )}
+    </View>
     </SafeAreaView>
   );
 }

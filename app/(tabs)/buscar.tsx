@@ -15,6 +15,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { sanitizarCodigoBarras } from "@/utils/barcode";
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
@@ -146,7 +147,7 @@ export default function PantallaBusqueda() {
   }, [codigoInput, procesarCodigo, cerrarTeclado]);
 
   return (
-    <>
+    <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
       <StatusBar style="light" />
       <KeyboardAvoidingView
         style={styles.container}
@@ -181,30 +182,32 @@ export default function PantallaBusqueda() {
           </View>
         )}
 
-        {/* guia visual para el escaneo */}
-        <View style={styles.scanFrame} pointerEvents="box-none">
-          {cargando ? (
-            <View style={styles.cargandoContainer}>
-              <ActivityIndicator size="large" color="#fff" />
-              <Text style={styles.cargandoTexto}>Buscando producto...</Text>
-            </View>
-          ) : errorCodigo ? (
-            <View style={styles.errorContainer}>
-              <FontAwesome name="exclamation-triangle" size={28} color="#e57373" />
-              <Text style={styles.errorTextoOverlay}>{errorCodigo}</Text>
-              <Pressable style={styles.reintentarButton} onPress={resetearEscaneo}>
-                <Text style={styles.reintentarButtonText}>Volver a escanear</Text>
-              </Pressable>
-            </View>
-          ) : (
-            <>
-              <View style={styles.scanFrameBorder}>
-                <FontAwesome name="barcode" size={36} color="rgba(255,255,255,0.7)" />
+        {/* guia visual para el escaneo: solo cuando la camara esta activa */}
+        {permission?.granted && (
+          <View style={styles.scanFrame} pointerEvents="box-none">
+            {cargando ? (
+              <View style={styles.cargandoContainer}>
+                <ActivityIndicator size="large" color="#fff" />
+                <Text style={styles.cargandoTexto}>Buscando producto...</Text>
               </View>
-              <Text style={styles.scanHint}>Escaneá el código de barras</Text>
-            </>
-          )}
-        </View>
+            ) : errorCodigo ? (
+              <View style={styles.errorContainer}>
+                <FontAwesome name="exclamation-triangle" size={28} color="#e57373" />
+                <Text style={styles.errorTextoOverlay}>{errorCodigo}</Text>
+                <Pressable style={styles.reintentarButton} onPress={resetearEscaneo}>
+                  <Text style={styles.reintentarButtonText}>Volver a escanear</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <>
+                <View style={styles.scanFrameBorder}>
+                  <FontAwesome name="barcode" size={36} color="rgba(255,255,255,0.7)" />
+                </View>
+                <Text style={styles.scanHint}>Escaneá el código de barras</Text>
+              </>
+            )}
+          </View>
+        )}
       </Pressable>
 
       {/* panel inferior con ingreso manual */}
@@ -262,7 +265,7 @@ export default function PantallaBusqueda() {
         )}
       </View>
     </KeyboardAvoidingView>
-    </>
+    </SafeAreaView>
   );
 }
 

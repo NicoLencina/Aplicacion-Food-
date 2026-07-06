@@ -1,22 +1,27 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { View } from "react-native";
 
 // este archivo define la navegacion general de la app
 export default function RootLayout() {
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
+      <View style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
       {/* stack sirve para abrir pantallas una arriba de otra */}
       <Stack screenOptions={{ headerBackButtonDisplayMode: "minimal" }}>
-      {/* este grupo contiene las tres pantallas principales */}
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        {/* tabs tiene Home, Buscar y Favoritos */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-      {/* estas rutas muestran pantallas filtradas de la maqueta */}
-      <Stack.Screen name="categorias/[nombre]" />
-      <Stack.Screen name="marcas/[nombre]" />
-      <Stack.Screen name="etiquetas/[nombre]" />
-      <Stack.Screen name="fichas/[id]" />
-    </Stack>
+        {/* estas rutas muestran pantallas filtradas de la maqueta */}
+        <Stack.Screen name="categorias/[nombre]" />
+        <Stack.Screen name="marcas/[nombre]" />
+        <Stack.Screen name="etiquetas/[nombre]" />
+
+        {/* ficha de producto: pantalla completa sin tab bar */}
+        <Stack.Screen name="fichas/[id]" />
+      </Stack>
+      </View>
     </>
   );
 }
