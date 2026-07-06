@@ -17,6 +17,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 type FichaParams = {
   id: string;
@@ -44,6 +45,7 @@ export default function PantallaFicha() {
   const [error, setError] = useState<string | null>(null);
   const [producto, setProducto] = useState<ProductoAPIDetalle | null>(null);
   const [favActivo, setFavActivo] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (!id) return;
@@ -98,28 +100,45 @@ export default function PantallaFicha() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Stack.Screen options={{ title: "Producto" }} />
-        <Text style={styles.centerText}>cargando...</Text>
+      <View style={[styles.outer, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={styles.container}>
+          <Stack.Screen options={{
+            title: "Producto",
+            headerStyle: { backgroundColor: "#1a1a1a" },
+            headerTintColor: "#fff",
+          }} />
+          <Text style={styles.centerText}>cargando...</Text>
+        </View>
       </View>
     );
   }
 
   if (error || !producto) {
     return (
-      <View style={styles.container}>
-        <Stack.Screen options={{ title: "Producto" }} />
-        <Text style={styles.centerText}>{error ?? "producto no encontrado"}</Text>
+      <View style={[styles.outer, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={styles.container}>
+          <Stack.Screen options={{
+            title: "Producto",
+            headerStyle: { backgroundColor: "#1a1a1a" },
+            headerTintColor: "#fff",
+          }} />
+          <Text style={styles.centerText}>{error ?? "producto no encontrado"}</Text>
+        </View>
       </View>
     );
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <Stack.Screen options={{ title: producto.nombre }} />
+    <View style={[styles.outer, { paddingBottom: insets.bottom + 20 }]}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <Stack.Screen options={{
+          title: producto.nombre,
+          headerStyle: { backgroundColor: "#1a1a1a" },
+          headerTintColor: "#fff",
+        }} />
 
       <View style={styles.nombreRow}>
         <Text style={styles.nombre}>{producto.nombre}</Text>
@@ -239,6 +258,7 @@ export default function PantallaFicha() {
         <NutrienteFila label="Hierro" valor={producto.nutrientes.hierro} unidad="mg" />
       </InfoSeccion>
     </ScrollView>
+    </View>
   );
 }
 
@@ -336,13 +356,16 @@ function NutrienteFila({
 }
 
 const styles = StyleSheet.create({
+  outer: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
   container: {
     flex: 1,
     backgroundColor: COLORES.fondo,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
   },
   centerText: {
     textAlign: "center",

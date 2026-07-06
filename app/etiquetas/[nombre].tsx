@@ -8,6 +8,7 @@ import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type EtiquetaParams = {
   nombre: string;
@@ -42,6 +43,7 @@ export default function PantallaEtiqueta() {
   const etiqueta = etiquetas.find((e) => e.id === nombre);
   const nombreVisible = etiqueta?.nombre ?? "etiqueta";
   const tagOFF = etiqueta?.tagOFF;
+  const insets = useSafeAreaInsets();
 
   const [cargando, setCargando] = useState(true);
   const [cargandoMas, setCargandoMas] = useState(false);
@@ -122,22 +124,31 @@ export default function PantallaEtiqueta() {
 
   if (!tagOFF) {
     return (
-      <View style={styles.container}>
-        <Stack.Screen options={{ title: "Etiqueta" }} />
-        <View style={styles.centrado}>
-          <Text style={styles.textoError}>
-            esta etiqueta no tiene equivalente en open food facts
-          </Text>
+      <View style={[styles.outer, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={styles.container}>
+          <Stack.Screen options={{
+            title: "Etiqueta",
+            headerStyle: { backgroundColor: "#1a1a1a" },
+            headerTintColor: "#fff",
+          }} />
+          <View style={styles.centrado}>
+            <Text style={styles.textoError}>
+              esta etiqueta no tiene equivalente en open food facts
+            </Text>
+          </View>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen
+    <View style={[styles.outer, { paddingBottom: insets.bottom + 20 }]}>
+      <View style={styles.container}>
+        <Stack.Screen
         options={{
           title: nombreVisible.charAt(0).toUpperCase() + nombreVisible.slice(1),
+          headerStyle: { backgroundColor: "#1a1a1a" },
+          headerTintColor: "#fff",
         }}
       />
 
@@ -176,15 +187,20 @@ export default function PantallaEtiqueta() {
         />
       )}
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  outer: {
+    flex: 1,
+    backgroundColor: "#1a1a1a",
+  },
   container: {
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    backgroundColor: "#f4f4f4",
   },
   lista: {
     paddingBottom: 20,
