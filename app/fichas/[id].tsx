@@ -1,6 +1,6 @@
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
 import { mensajeErrorAmigable } from "@/utils/errores";
-import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
+import type { ProductoAPIDetalle, NutrientesAPI } from "@/transformers/openFoodFactsTransformer";
 import {
   textoEcoScore,
   textoGrupoNova,
@@ -140,8 +140,8 @@ export default function PantallaFicha() {
           headerTintColor: "#fff",
         }} />
 
-      <View style={styles.nombreRow}>
-        <Text style={styles.nombre}>{producto.nombre}</Text>
+      <View style={styles.barraNombreProducto}>
+        <Text style={styles.textoNombreProducto}>{producto.nombre}</Text>
       </View>
       {producto.marcas ? (
         <Text style={styles.marca}>{producto.marcas}</Text>
@@ -172,7 +172,9 @@ export default function PantallaFicha() {
         </Pressable>
       </View>
 
-      <Text style={styles.seccionTitulo}>Clasificación del producto</Text>
+      <View style={styles.barraTituloFicha}>
+        <Text style={styles.textoBarraTitulo}>Clasificacion del producto</Text>
+      </View>
       <View style={styles.scoresRow}>
         <ScoreBox
           label={"Calidad\nnutricional"}
@@ -198,70 +200,43 @@ export default function PantallaFicha() {
         <IngredientesLista texto={producto.ingredientes} />
       </InfoSeccion>
 
-      <InfoSeccion titulo="Informacion nutricional (por 100g/ml)">
-        <NutrienteFila label="Energia" valor={producto.nutrientes.energiaKcal} unidad="kcal" />
-        <NutrienteFila label="Energia" valor={producto.nutrientes.energia} unidad="kJ" />
-        <NutrienteFila label="Grasas" valor={producto.nutrientes.grasa} unidad="g" />
-        <NutrienteFila
-          label="de las cuales saturadas"
-          valor={producto.nutrientes.grasaSaturada}
-          unidad="g"
-          subfila
-        />
-        <NutrienteFila
-          label="monoinsaturadas"
-          valor={producto.nutrientes.grasaMonoinsaturada}
-          unidad="g"
-          subfila
-        />
-        <NutrienteFila
-          label="poliinsaturadas"
-          valor={producto.nutrientes.grasaPoliinsaturada}
-          unidad="g"
-          subfila
-        />
-        <NutrienteFila
-          label="trans"
-          valor={producto.nutrientes.grasaTrans}
-          unidad="g"
-          subfila
-        />
-        <NutrienteFila label="Colesterol" valor={producto.nutrientes.colesterol} unidad="mg" />
-        <NutrienteFila
-          label="Hidratos de carbono"
-          valor={producto.nutrientes.carbohidratos}
-          unidad="g"
-        />
-        <NutrienteFila
-          label="de los cuales azucares"
-          valor={producto.nutrientes.azucares}
-          unidad="g"
-          subfila
-        />
-        <NutrienteFila label="Fibra" valor={producto.nutrientes.fibra} unidad="g" />
-        <NutrienteFila
-          label="Proteinas"
-          valor={producto.nutrientes.proteina}
-          unidad="g"
-        />
-        <NutrienteFila label="Sal" valor={producto.nutrientes.sal} unidad="g" />
-        <NutrienteFila label="Sodio" valor={producto.nutrientes.sodio} unidad="g" />
-        <NutrienteFila
-          label="Vitamina A"
-          valor={producto.nutrientes.vitaminaA}
-          unidad="µg"
-        />
-        <NutrienteFila
-          label="Vitamina C"
-          valor={producto.nutrientes.vitaminaC}
-          unidad="mg"
-        />
-        <NutrienteFila label="Calcio" valor={producto.nutrientes.calcio} unidad="mg" />
-        <NutrienteFila label="Hierro" valor={producto.nutrientes.hierro} unidad="mg" />
+      <InfoSeccion titulo="Informacion nutricional">
+        {armarFilasNutricionales(producto.nutrientes).map((f) => (
+          <NutrienteFila key={`${f.label}-${f.unidad}`} label={f.label} valor={f.valor} unidad={f.unidad} subfila={f.subfila} />
+        ))}
       </InfoSeccion>
     </ScrollView>
     </View>
   );
+}
+
+// arma las filas de la tabla nutricional solo con los datos que no sean null
+// si la api no trajo el valor, la fila no se muestra
+function armarFilasNutricionales(n: NutrientesAPI) {
+  type Fila = { label: string; valor: number | null; unidad: string; subfila?: boolean };
+
+  const todas: Fila[] = [
+    { label: "Energia", valor: n.energiaKcal, unidad: "kcal" },
+    { label: "Grasas", valor: n.grasa, unidad: "g" },
+    { label: "saturadas", valor: n.grasaSaturada, unidad: "g", subfila: true },
+    { label: "monoinsaturadas", valor: n.grasaMonoinsaturada, unidad: "g", subfila: true },
+    { label: "poliinsaturadas", valor: n.grasaPoliinsaturada, unidad: "g", subfila: true },
+    { label: "trans", valor: n.grasaTrans, unidad: "g", subfila: true },
+    { label: "Colesterol", valor: n.colesterol, unidad: "mg" },
+    { label: "Hidratos de carbono", valor: n.carbohidratos, unidad: "g" },
+    { label: "azucares", valor: n.azucares, unidad: "g", subfila: true },
+    { label: "Fibra", valor: n.fibra, unidad: "g" },
+    { label: "Proteinas", valor: n.proteina, unidad: "g" },
+    { label: "Sal", valor: n.sal, unidad: "g" },
+    { label: "Sodio", valor: n.sodio, unidad: "g" },
+    { label: "Vitamina A", valor: n.vitaminaA, unidad: "µg" },
+    { label: "Vitamina C", valor: n.vitaminaC, unidad: "mg" },
+    { label: "Calcio", valor: n.calcio, unidad: "mg" },
+    { label: "Hierro", valor: n.hierro, unidad: "mg" },
+  ];
+
+  // solo devolvemos las filas donde la api trajo datos
+  return todas.filter((f) => f.valor !== null);
 }
 
 function ScoreBox({
@@ -294,10 +269,16 @@ function InfoSeccion({
   children: React.ReactNode;
 }) {
   return (
-    <View style={styles.seccion}>
-      <Text style={styles.seccionTitulo}>{titulo}</Text>
-      {children}
-    </View>
+    <>
+      <View style={styles.barraTituloFicha}>
+        <Text style={styles.textoBarraTitulo}>{titulo}</Text>
+      </View>
+      <View style={styles.cardSeccion}>
+        <View style={styles.contenidoSeccion}>
+          {children}
+        </View>
+      </View>
+    </>
   );
 }
 
@@ -392,16 +373,32 @@ const styles = StyleSheet.create({
   imagenEmoji: {
     fontSize: 64,
   },
-  nombreRow: {
-    alignItems: "center",
-    justifyContent: "center",
+  barraNombreProducto: {
+    backgroundColor: "#1a5f7a",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#2a7f9e",
   },
-  nombre: {
-    fontSize: 30,
+  textoNombreProducto: {
+    fontSize: 22,
     fontWeight: "900",
-    color: COLORES.principal,
+    color: "#fff",
     textAlign: "center",
-    flexWrap: "wrap",
+  },
+  barraTituloFicha: {
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  textoBarraTitulo: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#fff",
   },
   botonFavImagen: {
     position: "absolute",
@@ -433,31 +430,25 @@ const styles = StyleSheet.create({
   },
   scoresRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 16,
   },
   scoreBox: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: COLORES.tarjeta,
-    borderRadius: 12,
-    padding: 10,
+    backgroundColor: COLORES.fondo,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
     borderColor: COLORES.borde,
   },
   scoreLabel: {
-    width: "100%",
-    height: 32,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "700",
     color: COLORES.principal,
-    marginBottom: 6,
+    marginBottom: 10,
     textAlign: "center",
-    textAlignVertical: "center",
-    flexWrap: "wrap",
-    flexShrink: 1,
-    lineHeight: 14,
+    lineHeight: 16,
   },
   scoreCirculo: {
     width: 40,
@@ -481,14 +472,16 @@ const styles = StyleSheet.create({
     width: "100%",
     lineHeight: 14,
   },
-  seccion: {
+  cardSeccion: {
+    backgroundColor: COLORES.tarjeta,
+    borderRadius: 14,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORES.borde,
+    overflow: "hidden",
   },
-  seccionTitulo: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: COLORES.principal,
-    marginBottom: 10,
+  contenidoSeccion: {
+    padding: 16,
   },
   infoTexto: {
     fontSize: 15,
