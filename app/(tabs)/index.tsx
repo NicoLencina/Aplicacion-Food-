@@ -49,7 +49,7 @@ export default function IndexScreen() {
         <View style={{ width: "100%", gap: 8 }}>
           <Text style={styles.subtituloPrincipal}>GUIA DE ALIMENTOS</Text>
           <Text style={styles.tituloPrincipal}>
-            Elegi una opcion y revisa la informacion
+            Explora y compara productos
           </Text>
         </View>
 
@@ -223,7 +223,9 @@ function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
   const navegacion = useRouter();
   return (
     <View style={styles.bloqueLista}>
-      <Text style={styles.tituloLista}>Historias de escaneos</Text>
+      <View style={styles.barraSeccion}>
+        <Text style={styles.barraSeccionText}>Historias de escaneos</Text>
+      </View>
       <Text style={styles.descripcion}>Ultimos productos escaneados</Text>
       {items.length === 0 ? (
         <View style={styles.vacioHistorial}>
@@ -243,10 +245,14 @@ function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
                 navegacion.push(`/fichas/${encodeURIComponent(item.id)}`)
               }
             >
-              <View style={[styles.imagenPlaceholder, { backgroundColor: COLORES_NUTRI_SCORE[item.nutriScore] ?? "#f0f0f0" }]}>
-                <Text style={styles.scoreEnCard}>{item.nutriScore}</Text>
+              <View style={styles.marcaCardTop}>
+                <View style={[styles.imagenPlaceholder, { backgroundColor: COLORES_NUTRI_SCORE[item.nutriScore] ?? "#f0f0f0" }]}>
+                  <Text style={styles.scoreEnCard}>{item.nutriScore}</Text>
+                </View>
               </View>
-              <Text style={styles.marcaText} numberOfLines={2}>{item.nombre}</Text>
+              <View style={styles.marcaCardBottom}>
+                <Text style={styles.marcaCardBottomText} numberOfLines={2}>{item.nombre}</Text>
+              </View>
             </Pressable>
           ))}
         </ScrollView>
@@ -261,7 +267,9 @@ function CarruselFiltros({ solo }: { solo?: typeof etiquetas }) {
   if (datos.length === 0) return null;
   return (
     <View style={styles.bloqueLista}>
-      <Text style={styles.tituloLista}>Filtros</Text>
+      <View style={styles.barraSeccion}>
+        <Text style={styles.barraSeccionText}>Filtros</Text>
+      </View>
       <Text style={styles.descripcion}>Opciones para filtrar productos</Text>
       <ScrollView
         horizontal
@@ -276,12 +284,16 @@ function CarruselFiltros({ solo }: { solo?: typeof etiquetas }) {
               navegacion.push(armarRuta(RUTAS.FILTRO, { nombre: etiqueta.id }))
             }
           >
-            <View style={styles.imagenPlaceholder}>
-              <FontAwesome name="tag" size={22} color="#888" />
+            <View style={styles.marcaCardTop}>
+              <View style={styles.imagenPlaceholder}>
+                <FontAwesome name="tag" size={22} color="#888" />
+              </View>
             </View>
-            <Text style={styles.marcaText}>
-              {etiqueta.nombre.charAt(0).toUpperCase() + etiqueta.nombre.slice(1)}
-            </Text>
+            <View style={styles.marcaCardBottom}>
+              <Text style={styles.marcaCardBottomText}>
+                {etiqueta.nombre.charAt(0).toUpperCase() + etiqueta.nombre.slice(1)}
+              </Text>
+            </View>
           </Pressable>
         ))}
       </ScrollView>
@@ -329,11 +341,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#fff",
-  },
-  tituloLista: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#222",
   },
   scoreEnCard: {
     fontSize: 18,
@@ -449,13 +456,6 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1,
     borderColor: "#dddddd",
-  },
-  marcaText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#222",
-    textAlign: "center",
-    paddingHorizontal: 4,
   },
   vacioHistorial: {
     width: "100%",
