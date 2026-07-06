@@ -255,7 +255,7 @@ function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
                 </View>
               </View>
               <View style={styles.marcaCardBottom}>
-                <Text style={styles.marcaCardBottomText} numberOfLines={1}>{item.nombre}</Text>
+                <Text style={styles.marcaCardBottomText} numberOfLines={2}>{item.nombre}</Text>
               </View>
             </Pressable>
           ))}
@@ -298,7 +298,7 @@ function CarruselFiltros({ solo }: { solo?: typeof etiquetas }) {
               )}
             </View>
             <View style={styles.marcaCardBottom}>
-              <Text style={styles.marcaCardBottomText} numberOfLines={1}>
+              <Text style={styles.marcaCardBottomText}>
                 {etiqueta.nombre}
               </Text>
             </View>
@@ -458,17 +458,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   imagenPlaceholder: {
-    width: 64,
-    height: 64,
+    width: 52,
+    height: 52,
     backgroundColor: "#f0f0f0",
-    borderRadius: 32,
+    borderRadius: 28,
     borderWidth: 1,
     borderColor: "#dddddd",
   },
   imagenFiltro: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 52,
+    height: 52,
+    borderRadius: 28,
   },
   vacioHistorial: {
     width: "100%",

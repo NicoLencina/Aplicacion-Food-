@@ -1,7 +1,7 @@
 import { RUTAS, armarRuta } from "@/constants/rutas";
 import { COLORES_NUTRI_SCORE } from "@/constants/scores";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 // lo minimo que necesita la tarjeta para funcionar
 // sirve tanto para datos locales como para datos de la api
@@ -10,6 +10,7 @@ export type ProductoParaTarjeta = {
   nombre: string;
   marca: string;
   nutriScore: string;
+  imagenUrl?: string;
 };
 
 type Props = {
@@ -20,6 +21,7 @@ type Props = {
 export default function TarjetaProducto({ producto }: Props) {
   const navegacion = useRouter();
   const colorScore = COLORES_NUTRI_SCORE[producto.nutriScore] ?? "#888";
+  const tieneImagen = producto.imagenUrl && producto.imagenUrl.length > 0;
 
   return (
     <Pressable
@@ -28,9 +30,13 @@ export default function TarjetaProducto({ producto }: Props) {
         navegacion.push(armarRuta(RUTAS.FICHA, { id: producto.id }))
       }
     >
-      <View style={styles.imagenPlaceholder}>
-        <Text style={styles.imagenEmoji}>🍽️</Text>
-      </View>
+      {tieneImagen ? (
+        <Image source={{ uri: producto.imagenUrl }} style={styles.imagenProducto} />
+      ) : (
+        <View style={styles.imagenPlaceholder}>
+          <Text style={styles.imagenEmoji}>🍽️</Text>
+        </View>
+      )}
 
       <View style={styles.info}>
         <Text style={styles.nombre} numberOfLines={2}>
@@ -65,6 +71,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     justifyContent: "center",
     alignItems: "center",
+  },
+  imagenProducto: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: "#f2f2f2",
   },
   imagenEmoji: {
     fontSize: 24,

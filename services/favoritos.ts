@@ -8,6 +8,7 @@ export type ProductoFavorito = {
   nombre: string;
   marca: string;
   nutriScore: string;
+  imagenUrl?: string;
 };
 
 const CLAVE = "favoritos";

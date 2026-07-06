@@ -22,6 +22,7 @@ function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
     nombre: item.nombre,
     marca: item.marcas,
     nutriScore: item.nutriScore,
+    imagenUrl: item.imagenUrl || undefined,
   };
 }
 

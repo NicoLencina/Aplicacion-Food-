@@ -91,6 +91,7 @@ export default function PantallaFicha() {
       nombre: producto.nombre,
       marca: producto.marcas,
       nutriScore: producto.nutriScore,
+      imagenUrl: producto.imagenUrl || undefined,
     };
     alternarFavorito(fav).then(setFavActivo);
   }
