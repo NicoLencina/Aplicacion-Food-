@@ -89,6 +89,7 @@ export default function PantallaBusqueda() {
             nombre: res.producto.nombre,
             marca: res.producto.marcas,
             nutriScore: res.producto.nutriScore,
+            imagenUrl: res.producto.imagenUrl || undefined,
           });
           router.push(`/fichas/${encodeURIComponent(codigo)}`);
         } else {

@@ -4,6 +4,7 @@ import { etiquetas } from "@/data/etiquetas";
 import { marcas } from "@/data/marcas";
 import { COLORES_NUTRI_SCORE } from "@/constants/scores";
 import { obtenerHistorial } from "@/services/historial";
+import { limpiarHistorial } from "@/services/historial";
 import type { ProductoHistorial } from "@/services/historial";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -26,6 +27,11 @@ export default function IndexScreen() {
       obtenerHistorial().then(setHistorial);
     }, [])
   );
+
+  async function handleLimpiarHistorial() {
+    await limpiarHistorial();
+    setHistorial([]);
+  }
 
   const categoriasFiltradas = categorias.filter((c) =>
     coincide(c.nombre, busqueda)
@@ -77,7 +83,7 @@ export default function IndexScreen() {
         {(!busqueda || marcasFiltradas.length > 0) && (
           <CarruselMarcas solo={busqueda ? marcasFiltradas : undefined} />
         )}
-        <CarruselHistorial items={historial} />
+        <CarruselHistorial items={historial} onClear={handleLimpiarHistorial} />
         {(!busqueda || etiquetasFiltradas.length > 0) && (
           <CarruselFiltros solo={busqueda ? etiquetasFiltradas : undefined} />
         )}
@@ -223,12 +229,17 @@ function CarruselMarcas({ solo }: { solo?: typeof marcas }) {
   );
 }
 
-function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
+function CarruselHistorial({ items, onClear }: { items: ProductoHistorial[]; onClear: () => void }) {
   const navegacion = useRouter();
   return (
     <View style={styles.bloqueLista}>
       <View style={styles.barraSeccion}>
         <Text style={styles.barraSeccionText}>Historias de escaneos</Text>
+        {items.length > 0 && (
+          <Pressable onPress={onClear} style={styles.botonLimpiar}>
+            <Text style={styles.textoLimpiar}>limpiar</Text>
+          </Pressable>
+        )}
       </View>
       <Text style={styles.descripcion}>Ultimos productos escaneados</Text>
       {items.length === 0 ? (
@@ -250,9 +261,13 @@ function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
               }
             >
               <View style={styles.marcaCardTop}>
-                <View style={[styles.imagenPlaceholder, { backgroundColor: COLORES_NUTRI_SCORE[item.nutriScore] ?? "#f0f0f0" }]}>
-                  <Text style={styles.scoreEnCard}>{item.nutriScore}</Text>
-                </View>
+                {item.imagenUrl ? (
+                  <Image source={{ uri: item.imagenUrl }} style={styles.imagenFiltro} />
+                ) : (
+                  <View style={[styles.imagenPlaceholder, { backgroundColor: COLORES_NUTRI_SCORE[item.nutriScore] ?? "#f0f0f0" }]}>
+                    <Text style={styles.scoreEnCard}>{item.nutriScore}</Text>
+                  </View>
+                )}
               </View>
               <View style={styles.marcaCardBottom}>
                 <Text style={styles.marcaCardBottomText} numberOfLines={2}>{item.nombre}</Text>
@@ -344,11 +359,24 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
   },
   barraSeccionText: {
     fontSize: 20,
     fontWeight: "700",
     color: "#fff",
+    flex: 1,
+  },
+  botonLimpiar: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+  },
+  textoLimpiar: {
+    fontSize: 14,
+    color: "#fff",
+    opacity: 0.8,
+    fontWeight: "600",
   },
   scoreEnCard: {
     fontSize: 18,

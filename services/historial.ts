@@ -8,6 +8,7 @@ export type ProductoHistorial = {
   nombre: string;
   marca: string;
   nutriScore: string;
+  imagenUrl?: string;
   timestamp: number;
 };
 
