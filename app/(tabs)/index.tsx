@@ -185,6 +185,7 @@ export default function IndexScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           clearButtonMode="while-editing"
+          keyboardAppearance="dark"
         />
 
         {busqueda.length > 0 && !hayResultadosLocales && resultadosBusqueda.length === 0 && !buscando && (

@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { sanitizarCodigoBarras } from "@/utils/barcode";
 import { fetchProductoPorCodigo } from "@/services/openFoodFacts";
+import type { ProductoAPIDetalle } from "@/transformers/openFoodFactsTransformer";
 import { mensajeErrorAmigable } from "@/utils/errores";
 import { agregarAlHistorial } from "@/services/historial";
 
@@ -45,6 +46,8 @@ export default function PantallaBusqueda() {
   const [errorCodigo, setErrorCodigo] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
   const [tecladoVisible, setTecladoVisible] = useState(false);
+  const [productoEncontrado, setProductoEncontrado] = useState<ProductoAPIDetalle | null>(null);
+  const codigoProcesadoRef = useRef<string | null>(null);
   const escaneandoRef = useRef(false);
   const ultimoCodigoRef = useRef<string | null>(null);
 
@@ -64,6 +67,8 @@ export default function PantallaBusqueda() {
   const resetearEscaneo = useCallback(() => {
     cerrarTeclado();
     setErrorCodigo(null);
+    setProductoEncontrado(null);
+    codigoProcesadoRef.current = null;
     setScanned(false);
     escaneandoRef.current = false;
 
@@ -74,24 +79,33 @@ export default function PantallaBusqueda() {
     }, DELAY_REESCANEO_MS);
   }, [cerrarTeclado]);
 
+  const handleVerProducto = useCallback(() => {
+    const codigo = codigoProcesadoRef.current;
+    if (!productoEncontrado || !codigo) return;
+
+    cerrarTeclado();
+    agregarAlHistorial({
+      id: productoEncontrado.codigoBarras,
+      nombre: productoEncontrado.nombre,
+      marca: productoEncontrado.marcas,
+      nutriScore: productoEncontrado.nutriScore,
+      imagenUrl: productoEncontrado.imagenUrl || undefined,
+    });
+    router.push(`/fichas/${encodeURIComponent(codigo)}`);
+  }, [productoEncontrado, cerrarTeclado]);
+
   const procesarCodigo = useCallback(
     async (codigo: string) => {
+      codigoProcesadoRef.current = codigo;
       setCargando(true);
       setErrorCodigo(null);
+      setProductoEncontrado(null);
 
       try {
         const res = await fetchProductoPorCodigo(codigo);
         if (res.encontrado && res.producto) {
           setCodigoInput("");
-          cerrarTeclado();
-          agregarAlHistorial({
-            id: res.producto.codigoBarras,
-            nombre: res.producto.nombre,
-            marca: res.producto.marcas,
-            nutriScore: res.producto.nutriScore,
-            imagenUrl: res.producto.imagenUrl || undefined,
-          });
-          router.push(`/fichas/${encodeURIComponent(codigo)}`);
+          setProductoEncontrado(res.producto);
         } else {
           setErrorCodigo("Producto no encontrado");
         }
@@ -102,7 +116,7 @@ export default function PantallaBusqueda() {
         escaneandoRef.current = false;
       }
     },
-    [cerrarTeclado],
+    [],
   );
 
   const handleBarcodeScanned = useCallback(
@@ -191,13 +205,44 @@ export default function PantallaBusqueda() {
                 <ActivityIndicator size="large" color="#fff" />
                 <Text style={styles.cargandoTexto}>Buscando producto...</Text>
               </View>
+            ) : productoEncontrado ? (
+              <View style={styles.resultadoContainer}>
+                <Text style={styles.resultadoEmoji}>✅</Text>
+                <Text style={styles.resultadoNombre} numberOfLines={2}>
+                  {productoEncontrado.nombre}
+                </Text>
+                {productoEncontrado.marcas ? (
+                  <Text style={styles.resultadoMarca} numberOfLines={1}>
+                    {productoEncontrado.marcas}
+                  </Text>
+                ) : null}
+                <View style={styles.resultadoBotones}>
+                  <Pressable
+                    style={styles.botonVerProducto}
+                    onPress={handleVerProducto}
+                  >
+                    <Text style={styles.botonVerProductoTexto}>Ver producto</Text>
+                  </Pressable>
+                  <Pressable
+                    style={styles.botonReintentar}
+                    onPress={resetearEscaneo}
+                  >
+                    <Text style={styles.botonReintentarTexto}>Volver a escanear</Text>
+                  </Pressable>
+                </View>
+              </View>
             ) : errorCodigo ? (
-              <View style={styles.errorContainer}>
-                <FontAwesome name="exclamation-triangle" size={28} color="#e57373" />
-                <Text style={styles.errorTextoOverlay}>{errorCodigo}</Text>
-                <Pressable style={styles.reintentarButton} onPress={resetearEscaneo}>
-                  <Text style={styles.reintentarButtonText}>Volver a escanear</Text>
-                </Pressable>
+              <View style={styles.resultadoContainer}>
+                <FontAwesome name="exclamation-triangle" size={32} color="#e57373" />
+                <Text style={styles.resultadoErrorTexto}>{errorCodigo}</Text>
+                <View style={styles.resultadoBotones}>
+                  <Pressable
+                    style={styles.botonReintentar}
+                    onPress={resetearEscaneo}
+                  >
+                    <Text style={styles.botonReintentarTexto}>Volver a escanear</Text>
+                  </Pressable>
+                </View>
               </View>
             ) : (
               <>
@@ -229,6 +274,7 @@ export default function PantallaBusqueda() {
             placeholderTextColor="#888"
             keyboardType="number-pad"
             maxLength={13}
+            keyboardAppearance="dark"
             value={codigoInput}
             onChangeText={(t) => {
               setCodigoInput(t);
@@ -303,7 +349,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // --- carga y error en el overlay de la camara ---
+  // --- carga en el overlay de la camara ---
 
   cargandoContainer: {
     alignItems: "center",
@@ -311,32 +357,6 @@ const styles = StyleSheet.create({
   },
   cargandoTexto: {
     fontSize: 15,
-    color: "#fff",
-  },
-  errorContainer: {
-    alignItems: "center",
-    gap: 10,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    padding: 20,
-    borderRadius: 14,
-    marginHorizontal: 32,
-  },
-  errorTextoOverlay: {
-    fontSize: 15,
-    color: "#e57373",
-    textAlign: "center",
-    fontWeight: "600",
-  },
-  reintentarButton: {
-    marginTop: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#2a7f9e",
-    borderRadius: 10,
-  },
-  reintentarButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
     color: "#fff",
   },
 
@@ -447,5 +467,67 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#e57373",
     textAlign: "center",
+  },
+
+  // --- resultado de escaneo ---
+
+  resultadoContainer: {
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    padding: 20,
+    borderRadius: 16,
+    marginHorizontal: 24,
+  },
+  resultadoEmoji: {
+    fontSize: 32,
+  },
+  resultadoNombre: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    textAlign: "center",
+  },
+  resultadoMarca: {
+    fontSize: 14,
+    color: "#ccc",
+    textAlign: "center",
+  },
+  resultadoErrorTexto: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#e57373",
+    textAlign: "center",
+  },
+  resultadoBotones: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 8,
+    width: "100%",
+  },
+  botonVerProducto: {
+    flex: 1,
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  botonVerProductoTexto: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  botonReintentar: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#2a7f9e",
+    alignItems: "center",
+  },
+  botonReintentarTexto: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2a7f9e",
   },
 });
