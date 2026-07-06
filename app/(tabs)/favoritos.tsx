@@ -100,6 +100,8 @@ export default function PantallaFavoritos() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 18,
+    paddingBottom: 10,
     backgroundColor: "#f4f4f4",
   },
   encabezado: {
@@ -107,7 +109,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingBottom: 8,
+    paddingBottom: 15,
   },
   titulo: {
     fontSize: 32,
