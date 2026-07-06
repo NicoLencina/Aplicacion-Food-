@@ -5,11 +5,16 @@ import { marcas } from "@/data/marcas";
 import { COLORES_NUTRI_SCORE } from "@/constants/scores";
 import { obtenerHistorial } from "@/services/historial";
 import { limpiarHistorial } from "@/services/historial";
+import { buscarProductos } from "@/services/openFoodFacts";
+import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
+import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoHistorial } from "@/services/historial";
+import TarjetaProducto from "@/components/TarjetaProducto";
+import type { ProductoParaTarjeta } from "@/components/TarjetaProducto";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
@@ -17,10 +22,76 @@ function coincide(texto: string, busqueda: string): boolean {
   return texto.toLowerCase().includes(busqueda.toLowerCase());
 }
 
+// busca en los datos locales si el texto coincide con alguna marca,
+// categoria o etiqueta conocida. devuelve tipo, tag e id para navegar
+function buscarMatchLocal(
+  texto: string
+): { tipo: "marca" | "categoria" | "etiqueta"; tag: string; id: string; nombre: string } | null {
+  const t = texto.toLowerCase().trim();
+
+  for (const m of marcas) {
+    if (m.nombre.toLowerCase().includes(t)) {
+      return { tipo: "marca", tag: m.tagOFF, id: m.id, nombre: m.nombre };
+    }
+  }
+
+  for (const c of categorias) {
+    if (c.nombre.toLowerCase().includes(t)) {
+      return { tipo: "categoria", tag: c.tagOFF, id: c.id, nombre: c.nombre };
+    }
+  }
+
+  for (const e of etiquetas) {
+    if (e.nombre.toLowerCase().includes(t)) {
+      return { tipo: "etiqueta", tag: e.tagOFF, id: e.id, nombre: e.nombre };
+    }
+  }
+
+  return null;
+}
+
+// mapea el resumen de la api al formato que entiende la tarjeta
+function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
+  return {
+    id: item.codigoBarras,
+    nombre: item.nombre,
+    marca: item.marcas,
+    nutriScore: item.nutriScore,
+    imagenUrl: item.imagenUrl || undefined,
+  };
+}
+
+// boton para ver mas resultados en la pantalla de la marca/categoria/etiqueta
+function ResultadoLink({ match }: { match: { tipo: "marca" | "categoria" | "etiqueta"; id: string; nombre: string } }) {
+  const navegacion = useRouter();
+
+  const rutaMap = {
+    marca: RUTAS.MARCA,
+    categoria: RUTAS.CATEGORIA,
+    etiqueta: RUTAS.FILTRO,
+  };
+
+  return (
+    <Pressable
+      style={styles.verMasBoton}
+      onPress={() => navegacion.push(armarRuta(rutaMap[match.tipo], { nombre: match.id }))}
+    >
+      <Text style={styles.verMasTexto}>Ver mas en {match.nombre}</Text>
+      <FontAwesome name="chevron-right" size={14} color="#fff" />
+    </Pressable>
+  );
+}
+
 // esta es la pantalla principal de la maqueta
 export default function IndexScreen() {
   const [busqueda, setBusqueda] = useState("");
   const [historial, setHistorial] = useState<ProductoHistorial[]>([]);
+
+  // estado para busqueda por texto contra la api
+  const [resultadosBusqueda, setResultadosBusqueda] = useState<ProductoParaTarjeta[]>([]);
+  const [buscando, setBuscando] = useState(false);
+  const [errorBusqueda, setErrorBusqueda] = useState<string | null>(null);
+  const [matchActual, setMatchActual] = useState<{ tipo: "marca" | "categoria" | "etiqueta"; id: string; nombre: string } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,10 +113,55 @@ export default function IndexScreen() {
   const etiquetasFiltradas = etiquetas.filter((e) =>
     coincide(e.nombre, busqueda)
   );
-  const hayResultados =
+  const hayResultadosLocales =
     categoriasFiltradas.length > 0 ||
     marcasFiltradas.length > 0 ||
     etiquetasFiltradas.length > 0;
+
+  // debounce para buscar productos en la api mientras el usuario escribe
+  useEffect(() => {
+    const texto = busqueda.trim();
+    if (!texto) {
+      setResultadosBusqueda([]);
+      setBuscando(false);
+      setErrorBusqueda(null);
+      return;
+    }
+
+    const handler = setTimeout(async () => {
+      setBuscando(true);
+      setErrorBusqueda(null);
+
+      const match = buscarMatchLocal(texto);
+      if (!match) {
+        setResultadosBusqueda([]);
+        setBuscando(false);
+        setMatchActual(null);
+        return;
+      }
+
+      setMatchActual({ tipo: match.tipo, id: match.id, nombre: match.nombre });
+
+      try {
+        const filtro =
+          match.tipo === "marca"
+            ? { marca: match.tag }
+            : match.tipo === "categoria"
+            ? { categoria: match.tag }
+            : { etiqueta: match.tag };
+
+        const res = await buscarProductos({ ...filtro, cantidadPorPagina: 20 });
+        setResultadosBusqueda(res.productos.map(aProductoTarjeta));
+      } catch (e) {
+        setErrorBusqueda(mensajeErrorAmigable(e));
+        setResultadosBusqueda([]);
+      } finally {
+        setBuscando(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(handler);
+  }, [busqueda]);
 
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
@@ -71,10 +187,36 @@ export default function IndexScreen() {
           clearButtonMode="while-editing"
         />
 
-        {busqueda.length > 0 && !hayResultados && (
+        {busqueda.length > 0 && !hayResultadosLocales && resultadosBusqueda.length === 0 && !buscando && (
           <Text style={styles.sinResultados}>
             no hay resultados para {'\u201C'}{busqueda}{'\u201D'}
           </Text>
+        )}
+
+        {/* resultados de la api mientras se busca */}
+        {resultadosBusqueda.length > 0 && (
+          <View style={styles.bloqueLista}>
+            <View style={styles.barraSeccion}>
+              <Text style={styles.barraSeccionText}>Productos</Text>
+            </View>
+            {resultadosBusqueda.slice(0, 6).map((item) => (
+              <TarjetaProducto key={item.id} producto={item} />
+            ))}
+            {matchActual && (
+              <ResultadoLink match={matchActual} />
+            )}
+          </View>
+        )}
+
+        {buscando && (
+          <View style={styles.buscandoContainer}>
+            <ActivityIndicator size="small" color="#2a7f9e" />
+            <Text style={styles.buscandoTexto}>buscando productos...</Text>
+          </View>
+        )}
+
+        {errorBusqueda && (
+          <Text style={styles.textoErrorBusqueda}>{errorBusqueda}</Text>
         )}
 
         {(!busqueda || categoriasFiltradas.length > 0) && (
@@ -529,5 +671,36 @@ const styles = StyleSheet.create({
     color: "#888",
     textAlign: "center",
     marginTop: 8,
+  },
+  verMasBoton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  verMasTexto: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  buscandoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 12,
+  },
+  buscandoTexto: {
+    fontSize: 14,
+    color: "#888",
+  },
+  textoErrorBusqueda: {
+    fontSize: 14,
+    color: "#cc0000",
+    textAlign: "center",
+    paddingVertical: 8,
   },
 });
