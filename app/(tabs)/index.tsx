@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "center",
     alignItems: "center",
-    gap: 20,
+    gap: 12,
     paddingTop: 16,
     paddingBottom: 28,
     paddingHorizontal: 16,
@@ -308,6 +308,9 @@ const styles = StyleSheet.create({
   bloqueLista: {
     width: "100%",
     gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+    paddingBottom: 16,
   },
   barraCategoria: {
     width: "100%",
