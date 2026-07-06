@@ -95,6 +95,15 @@ type ItemLista = {
 // este objeto relaciona cada categoria con una imagen local
 const IMAGENES_CATEGORIA: Record<string, any> = {
   beverages: require("@/assets/images/categorias/bebidas.jpg"),
+  "cereals-and-potatoes": require("@/assets/images/categorias/Cereales.jpg"),
+  chocolates: require("@/assets/images/categorias/Chocolate.jpg"),
+  meals: require("@/assets/images/categorias/Comidas.jpg"),
+  breakfasts: require("@/assets/images/categorias/Desayunos.jpg"),
+  "biscuits-and-cakes": require("@/assets/images/categorias/Galletas.jpg"),
+  dairies: require("@/assets/images/categorias/Lacteos.jpg"),
+  desserts: require("@/assets/images/categorias/Postres.jpg"),
+  snacks: require("@/assets/images/categorias/Snacks.jpg"),
+  "plant-based-foods": require("@/assets/images/categorias/Vegetales.jpg"),
 };
 
 // este objeto relaciona cada categoria con un icono visual
@@ -116,9 +125,8 @@ function GrillaCategorias({ solo }: { solo?: typeof categorias }) {
   const datos = solo ?? categorias;
   return (
     <View style={styles.bloqueLista}>
-      <View style={styles.filaTitulo}>
-        <Text style={styles.tituloLista}>Categorias</Text>
-        <Text style={styles.textoSecundario}>ver lista</Text>
+      <View style={styles.barraCategoria}>
+        <Text style={styles.barraCategoriaText}>Categorias</Text>
       </View>
       {datos.length === 0 ? null : (
         <View style={styles.grillaCategorias}>
@@ -301,20 +309,23 @@ const styles = StyleSheet.create({
     width: "100%",
     gap: 12,
   },
-  filaTitulo: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+  barraCategoria: {
+    width: "100%",
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+  },
+  barraCategoriaText: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#fff",
   },
   tituloLista: {
     fontSize: 24,
     fontWeight: "700",
     color: "#222",
   },
-  textoSecundario: {
-    color: "#555",
-  },
-
   scoreEnCard: {
     fontSize: 18,
     fontWeight: "800",
