@@ -1,6 +1,7 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import type { BarcodeScanningResult, BarcodeType } from "expo-camera";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { StatusBar } from "expo-status-bar";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -145,11 +146,13 @@ export default function PantallaBusqueda() {
   }, [codigoInput, procesarCodigo, cerrarTeclado]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior="padding"
-      keyboardVerticalOffset={KEYBOARD_OFFSET}
-    >
+    <>
+      <StatusBar style="light" />
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior="padding"
+        keyboardVerticalOffset={KEYBOARD_OFFSET}
+      >
       {/* seccion de la camara con escaneo */}
       <Pressable style={styles.cameraSection} onPress={cerrarTeclado}>
         {permission?.granted ? (
@@ -259,6 +262,7 @@ export default function PantallaBusqueda() {
         )}
       </View>
     </KeyboardAvoidingView>
+    </>
   );
 }
 

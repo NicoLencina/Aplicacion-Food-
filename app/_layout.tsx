@@ -1,10 +1,13 @@
 import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 // este archivo define la navegacion general de la app
 export default function RootLayout() {
   return (
-    // stack sirve para abrir pantallas una arriba de otra
-    <Stack screenOptions={{ headerBackButtonDisplayMode: "minimal" }}>
+    <>
+      <StatusBar style="dark" />
+      {/* stack sirve para abrir pantallas una arriba de otra */}
+      <Stack screenOptions={{ headerBackButtonDisplayMode: "minimal" }}>
       {/* este grupo contiene las tres pantallas principales */}
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
@@ -14,5 +17,6 @@ export default function RootLayout() {
       <Stack.Screen name="etiquetas/[nombre]" />
       <Stack.Screen name="fichas/[id]" />
     </Stack>
+    </>
   );
 }
