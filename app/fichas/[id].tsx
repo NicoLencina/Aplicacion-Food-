@@ -11,9 +11,12 @@ import {
   COLORES_NOVA,
   COLORES_ECO_SCORE,
 } from "@/constants/scores";
+import type { ProductoFavorito } from "@/services/favoritos";
+import { alternarFavorito, esFavorito } from "@/services/favoritos";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 type FichaParams = {
   id: string;
@@ -40,6 +43,13 @@ export default function PantallaFicha() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [producto, setProducto] = useState<ProductoAPIDetalle | null>(null);
+  const [favActivo, setFavActivo] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+
+    esFavorito(id).then((r) => setFavActivo(r.existe));
+  }, [id]);
 
   useEffect(() => {
     if (!id) return;
@@ -73,6 +83,18 @@ export default function PantallaFicha() {
     };
   }, [id]);
 
+  function handleToggleFav() {
+    if (!producto) return;
+
+    const fav: ProductoFavorito = {
+      id: producto.codigoBarras,
+      nombre: producto.nombre,
+      marca: producto.marcas,
+      nutriScore: producto.nutriScore,
+    };
+    alternarFavorito(fav).then(setFavActivo);
+  }
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -98,7 +120,20 @@ export default function PantallaFicha() {
     >
       <Stack.Screen options={{ title: producto.nombre }} />
 
-      <Text style={styles.nombre}>{producto.nombre}</Text>
+      <View style={styles.nombreRow}>
+        <Text style={styles.nombre}>{producto.nombre}</Text>
+        <Pressable
+          style={styles.botonFav}
+          onPress={handleToggleFav}
+          hitSlop={8}
+        >
+          <FontAwesome
+            name={favActivo ? "heart" : "heart-o"}
+            size={26}
+            color={favActivo ? "#d32f2f" : "#888"}
+          />
+        </Pressable>
+      </View>
       {producto.marcas ? (
         <Text style={styles.marca}>{producto.marcas}</Text>
       ) : null}
@@ -298,12 +333,22 @@ const styles = StyleSheet.create({
   imagenEmoji: {
     fontSize: 64,
   },
+  nombreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
   nombre: {
     fontSize: 30,
     fontWeight: "900",
     color: COLORES.principal,
     textAlign: "center",
     flexWrap: "wrap",
+    flexShrink: 1,
+  },
+  botonFav: {
+    padding: 4,
   },
   marca: {
     fontSize: 16,
