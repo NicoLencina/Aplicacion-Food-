@@ -1,4 +1,3 @@
-// para diferenciar los errores vamos a crear una funcion que nos diga si es un error de red o no, y otra que nos diga el status del error
 function esErrorDeRed(e: unknown): boolean {
   if (e instanceof TypeError && e.message === "Network request failed") {
     return true;
@@ -9,14 +8,13 @@ function esErrorDeRed(e: unknown): boolean {
   return false;
 }
 
-// para diferenciar los errores vamos a crear una funcion que nos diga si es un error de red o no, y otra que nos diga el status del error
 function extraerStatus(e: unknown): number | null {
   if (!(e instanceof Error)) return null;
   const match = e.message.match(/estado (\d+)/);
   return match ? Number(match[1]) : null;
 }
 
-// esta funcion recibe un error y devuelve un mensaje de error amigable para el usuario, ya que se me mete en la vista del usuario el error de la api
+// convierte errores de la api en mensajes para el usuario
 export function mensajeErrorAmigable(error: unknown): string {
   if (esErrorDeRed(error)) {
     return "No hay conexion a internet. Revisa tu conexion y volve a intentar.";

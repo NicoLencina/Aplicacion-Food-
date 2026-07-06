@@ -41,8 +41,6 @@ const CAMPOS_LISTA = [
   "categories_tags",
 ].join(",");
 
-// --- tipos para los parametros de busqueda ---
-
 export type BusquedaParams = {
   categoria?: string;
   marca?: string;
@@ -52,8 +50,6 @@ export type BusquedaParams = {
   pagina?: number;
   cantidadPorPagina?: number;
 };
-
-// --- helpers internos ---
 
 // reintentos simples porque la api a veces falla
 async function pedirFetch(url: string): Promise<Record<string, unknown>> {
@@ -93,8 +89,6 @@ async function pedirFetch(url: string): Promise<Record<string, unknown>> {
 
   throw ultimoError;
 }
-
-// --- funciones publicas ---
 
 // busca un producto por su codigo de barras
 // devuelve el producto transformado o null si no se encuentra

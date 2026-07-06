@@ -7,7 +7,7 @@ import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type CategoriaParams = {
@@ -18,7 +18,6 @@ type CategoriaParams = {
 const PRODUCTOS_POR_PAGINA = 20;
 const PAIS_ARGENTINA = "en:argentina";
 
-// --- filtrado post-api ---
 // las categorias de open food facts son colaborativas y ruidosas
 // un producto puede aparecer como "snack" cuando en realidad es fideo
 // por eso aplicamos dos mecanismos:

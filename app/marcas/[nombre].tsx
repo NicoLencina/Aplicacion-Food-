@@ -7,7 +7,7 @@ import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type MarcaParams = {

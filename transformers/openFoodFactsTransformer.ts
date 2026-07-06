@@ -2,8 +2,6 @@
 // en objetos que la app puede usar sin riesgos
 // la api devuelve muchos campos y a veces vienen vacios
 
-// --- tipos para los datos transformados ---
-
 // null significa que la api no devolvio el valor
 // (distinto de 0, que es un valor valido)
 export type NutrientesAPI = {
@@ -82,7 +80,7 @@ export function limpiarTextoIngredientes(texto: string): string {
     .trim();
 }
 
-// --- helpers de traduccion para valores de la api ---
+// texto descriptivo para cada grado de nutri-score
 
 // texto descriptivo para cada grado de nutri-score
 export function textoNutriScore(grado: string): string {
@@ -126,8 +124,6 @@ export function textoGrupoNova(grupo: string): string {
   };
   return mapa[grupo] ?? "Sin calificar";
 }
-
-// --- transformadores ---
 
 function valorSeguro(valor: unknown, fallback: number): number {
   if (typeof valor === "number" && !Number.isNaN(valor)) return valor;
