@@ -15,6 +15,7 @@ import {
   View,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // muestra los productos que el usuario guardo como favoritos
 // y el historial de escaneos recientes
@@ -75,7 +76,7 @@ export default function PantallaFavoritos() {
   }, []);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.encabezado}>
         <Text style={styles.titulo}>Favoritos</Text>
         {favoritos.length > 0 && (
@@ -149,7 +150,7 @@ export default function PantallaFavoritos() {
           )}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -163,7 +164,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 16,
     paddingBottom: 8,
   },
   titulo: {

@@ -6,6 +6,7 @@ import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import "react-native-reanimated";
 
 function coincide(texto: string, busqueda: string): boolean {
@@ -31,7 +32,7 @@ export default function IndexScreen() {
     etiquetasFiltradas.length > 0;
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         {/* encabezado principal de la pantalla */}
         <View style={{ width: "100%", gap: 8 }}>
@@ -69,7 +70,7 @@ export default function IndexScreen() {
           <CarruselMarcas solo={busqueda ? marcasFiltradas : undefined} />
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -204,7 +205,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 20,
-    paddingVertical: 32,
+    paddingTop: 12,
+    paddingBottom: 28,
     paddingHorizontal: 16,
     backgroundColor: "#f4f4f4",
   },
