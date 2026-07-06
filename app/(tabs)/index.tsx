@@ -4,11 +4,32 @@ import { etiquetas } from "@/data/etiquetas";
 import { marcas } from "@/data/marcas";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useRouter } from "expo-router";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useState } from "react";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import "react-native-reanimated";
+
+function coincide(texto: string, busqueda: string): boolean {
+  return texto.toLowerCase().includes(busqueda.toLowerCase());
+}
 
 // esta es la pantalla principal de la maqueta
 export default function IndexScreen() {
+  const [busqueda, setBusqueda] = useState("");
+
+  const categoriasFiltradas = categorias.filter((c) =>
+    coincide(c.nombre, busqueda)
+  );
+  const marcasFiltradas = marcas.filter((m) =>
+    coincide(m.nombre, busqueda)
+  );
+  const etiquetasFiltradas = etiquetas.filter((e) =>
+    coincide(e.nombre, busqueda)
+  );
+  const hayResultados =
+    categoriasFiltradas.length > 0 ||
+    marcasFiltradas.length > 0 ||
+    etiquetasFiltradas.length > 0;
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
@@ -19,9 +40,34 @@ export default function IndexScreen() {
             Elegi una opcion y revisa la informacion
           </Text>
         </View>
-        <GrillaCategorias />
-        <ListaFiltros />
-        <CarruselMarcas />
+
+        {/* busqueda textual por marca, etiqueta o categoria */}
+        <TextInput
+          style={styles.inputBusqueda}
+          placeholder="buscar por marca, etiqueta o categoria..."
+          placeholderTextColor="#999"
+          value={busqueda}
+          onChangeText={setBusqueda}
+          autoCapitalize="none"
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+        />
+
+        {busqueda.length > 0 && !hayResultados && (
+          <Text style={styles.sinResultados}>
+            no hay resultados para {'\u201C'}{busqueda}{'\u201D'}
+          </Text>
+        )}
+
+        {(!busqueda || categoriasFiltradas.length > 0) && (
+          <GrillaCategorias solo={busqueda ? categoriasFiltradas : undefined} />
+        )}
+        {(!busqueda || etiquetasFiltradas.length > 0) && (
+          <ListaFiltros solo={busqueda ? etiquetasFiltradas : undefined} />
+        )}
+        {(!busqueda || marcasFiltradas.length > 0) && (
+          <CarruselMarcas solo={busqueda ? marcasFiltradas : undefined} />
+        )}
       </ScrollView>
     </View>
   );
@@ -46,29 +92,32 @@ const ICONOS_CATEGORIA: Record<string, string> = {
   "plant-based-foods": "pagelines",
 };
 
-function GrillaCategorias() {
+function GrillaCategorias({ solo }: { solo?: typeof categorias }) {
   const navegacion = useRouter();
+  const datos = solo ?? categorias;
   return (
     <View style={styles.bloqueLista}>
       <View style={styles.filaTitulo}>
         <Text style={styles.tituloLista}>Categorias</Text>
         <Text style={styles.textoSecundario}>ver lista</Text>
       </View>
-      <FlatList
-        data={categorias}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        scrollEnabled={false}
-        columnWrapperStyle={styles.filaGrilla}
-        renderItem={({ item }) => (
-          <TarjetaCategoria
-            item={item}
-            onPress={() =>
-              navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: item.id }))
-            }
-          />
-        )}
-      />
+      {datos.length === 0 ? null : (
+        <FlatList
+          data={datos}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          scrollEnabled={false}
+          columnWrapperStyle={styles.filaGrilla}
+          renderItem={({ item }) => (
+            <TarjetaCategoria
+              item={item}
+              onPress={() =>
+                navegacion.push(armarRuta(RUTAS.CATEGORIA, { nombre: item.id }))
+              }
+            />
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -93,8 +142,10 @@ function TarjetaCategoria({ item, onPress }: { item: ItemLista; onPress: () => v
   );
 }
 
-function CarruselMarcas() {
+function CarruselMarcas({ solo }: { solo?: typeof marcas }) {
   const navegacion = useRouter();
+  const datos = solo ?? marcas;
+  if (datos.length === 0) return null;
   return (
     <View style={styles.bloqueLista}>
       <Text style={styles.tituloLista}>Marcas</Text>
@@ -104,7 +155,7 @@ function CarruselMarcas() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollMarcas}
       >
-        {marcas.map((marca) => (
+        {datos.map((marca) => (
           <Pressable
             key={marca.id}
             style={styles.marcaCard}
@@ -121,13 +172,15 @@ function CarruselMarcas() {
   );
 }
 
-function ListaFiltros() {
+function ListaFiltros({ solo }: { solo?: typeof etiquetas }) {
   const navegacion = useRouter();
+  const datos = solo ?? etiquetas;
+  if (datos.length === 0) return null;
   return (
     <View style={styles.bloqueLista}>
       <Text style={styles.tituloLista}>Filtros</Text>
       <View style={styles.contenedorItems}>
-        {etiquetas.map((etiqueta) => (
+        {datos.map((etiqueta) => (
           <Pressable
             key={etiqueta.id}
             onPress={() =>
@@ -264,5 +317,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#222",
+  },
+  inputBusqueda: {
+    width: "100%",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: "#222",
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  sinResultados: {
+    fontSize: 15,
+    color: "#888",
+    textAlign: "center",
+    marginTop: 8,
   },
 });
