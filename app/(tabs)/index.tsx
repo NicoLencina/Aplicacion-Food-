@@ -207,7 +207,11 @@ function CarruselMarcas({ solo }: { solo?: typeof marcas }) {
             }
           >
             <View style={styles.marcaCardTop}>
-              <View style={styles.imagenPlaceholder} />
+              {marca.imagen ? (
+                <Image source={marca.imagen} style={styles.imagenFiltro} />
+              ) : (
+                <View style={styles.imagenPlaceholder} />
+              )}
             </View>
             <View style={styles.marcaCardBottom}>
               <Text style={styles.marcaCardBottomText} numberOfLines={1} ellipsizeMode="tail">{marca.nombre}</Text>
@@ -251,7 +255,7 @@ function CarruselHistorial({ items }: { items: ProductoHistorial[] }) {
                 </View>
               </View>
               <View style={styles.marcaCardBottom}>
-                <Text style={styles.marcaCardBottomText} numberOfLines={2}>{item.nombre}</Text>
+                <Text style={styles.marcaCardBottomText} numberOfLines={1}>{item.nombre}</Text>
               </View>
             </Pressable>
           ))}
@@ -285,13 +289,17 @@ function CarruselFiltros({ solo }: { solo?: typeof etiquetas }) {
             }
           >
             <View style={styles.marcaCardTop}>
-              <View style={styles.imagenPlaceholder}>
-                <FontAwesome name="tag" size={22} color="#888" />
-              </View>
+              {etiqueta.imagen ? (
+                <Image source={etiqueta.imagen} style={styles.imagenFiltro} />
+              ) : (
+                <View style={styles.imagenPlaceholder}>
+                  <FontAwesome name="tag" size={22} color="#888" />
+                </View>
+              )}
             </View>
             <View style={styles.marcaCardBottom}>
-              <Text style={styles.marcaCardBottomText}>
-                {etiqueta.nombre.charAt(0).toUpperCase() + etiqueta.nombre.slice(1)}
+              <Text style={styles.marcaCardBottomText} numberOfLines={1}>
+                {etiqueta.nombre}
               </Text>
             </View>
           </Pressable>
@@ -450,12 +458,17 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   imagenPlaceholder: {
-    width: 52,
-    height: 52,
+    width: 64,
+    height: 64,
     backgroundColor: "#f0f0f0",
-    borderRadius: 28,
+    borderRadius: 32,
     borderWidth: 1,
     borderColor: "#dddddd",
+  },
+  imagenFiltro: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   vacioHistorial: {
     width: "100%",
