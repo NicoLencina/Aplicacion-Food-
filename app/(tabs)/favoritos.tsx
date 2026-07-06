@@ -54,8 +54,9 @@ export default function PantallaFavoritos() {
   return (
     <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: "#1a1a1a" }}>
       <View style={styles.container}>
-      <View style={styles.encabezado}>
-        <Text style={styles.titulo}>Favoritos</Text>
+      <View style={styles.barraSeccion}>
+        <Text style={styles.barraSeccionText}>Favoritos</Text>
+        <Text style={styles.conteoFavs}>{favoritos.length} items</Text>
         {favoritos.length > 0 && (
           <Pressable
             style={styles.botonEditar}
@@ -100,32 +101,42 @@ export default function PantallaFavoritos() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 18,
     paddingBottom: 10,
     backgroundColor: "#f4f4f4",
   },
-  encabezado: {
+  barraSeccion: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingBottom: 15,
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
   },
-  titulo: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: "#222",
+  barraSeccionText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#fff",
+    flex: 1,
+  },
+  conteoFavs: {
+    fontSize: 13,
+    color: "rgba(255,255,255,0.7)",
+    marginRight: 12,
+    fontWeight: "600",
   },
   botonEditar: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
     borderRadius: 8,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
   textoEditar: {
     fontSize: 14,
     fontWeight: "600",
-    color: "#555",
+    color: "#fff",
   },
   lista: {
     paddingHorizontal: 16,
