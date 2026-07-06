@@ -3,6 +3,8 @@ import { COLORES_NUTRI_SCORE } from "@/constants/scores";
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
+
 // lo minimo que necesita la tarjeta para funcionar
 // sirve tanto para datos locales como para datos de la api
 export type ProductoParaTarjeta = {
@@ -16,6 +18,17 @@ export type ProductoParaTarjeta = {
 type Props = {
   producto: ProductoParaTarjeta;
 };
+
+// mapea el resumen de la api al formato que entiende la tarjeta
+export function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
+  return {
+    id: item.codigoBarras,
+    nombre: item.nombre,
+    marca: item.marcas,
+    nutriScore: item.nutriScore,
+    imagenUrl: item.imagenUrl || undefined,
+  };
+}
 
 // al tocar una tarjeta se abre la ficha del producto
 export default function TarjetaProducto({ producto }: Props) {
@@ -58,11 +71,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 14,
-    padding: 12,
-    marginBottom: 10,
+    padding: 8,
+    marginBottom: 4,
     borderWidth: 1,
     borderColor: "#e0e0e0",
-    gap: 12,
+    gap: 8,
   },
   imagenPlaceholder: {
     width: 52,

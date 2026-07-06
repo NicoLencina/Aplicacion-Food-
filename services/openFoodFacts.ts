@@ -27,7 +27,8 @@ const CAMPOS_DETALLE = [
   "nutriments",
 ].join(",");
 
-// campos que pedimos en listados (menos datos, mas rapido)
+// limito los campos porque la api es mas rapida y no trae cosas que no uso
+// antes pedia todo y tardaba bastante mas
 const CAMPOS_LISTA = [
   "code",
   "product_name",
@@ -51,7 +52,8 @@ export type BusquedaParams = {
   cantidadPorPagina?: number;
 };
 
-// reintentos simples porque la api a veces falla
+// reintentos simples porque la api a veces falla sin razon aparente
+// probe con axios pero era muchisimo codigo para lo que necesitaba
 async function pedirFetch(url: string): Promise<Record<string, unknown>> {
   const MAX_INTENTOS = 4;
   const TIMEOUT_POR_INTENTO = 8000;

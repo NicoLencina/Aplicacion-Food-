@@ -10,6 +10,7 @@ import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer
 import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoHistorial } from "@/services/historial";
 import TarjetaProducto from "@/components/TarjetaProducto";
+import { aProductoTarjeta } from "@/components/TarjetaProducto";
 import type { ProductoParaTarjeta } from "@/components/TarjetaProducto";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -48,17 +49,6 @@ function buscarMatchLocal(
   }
 
   return null;
-}
-
-// mapea el resumen de la api al formato que entiende la tarjeta
-function aProductoTarjeta(item: ProductoAPIResumen): ProductoParaTarjeta {
-  return {
-    id: item.codigoBarras,
-    nombre: item.nombre,
-    marca: item.marcas,
-    nutriScore: item.nutriScore,
-    imagenUrl: item.imagenUrl || undefined,
-  };
 }
 
 // boton para ver mas resultados en la pantalla de la marca/categoria/etiqueta

@@ -72,8 +72,9 @@ export default function PantallaBusqueda() {
     setScanned(false);
     escaneandoRef.current = false;
 
-    // delay antes de permitir re-escaneo para evitar que la camara
-    // atrape el mismo codigo inmediatamente
+    // delay antes de permitir re-escaneo porque sino la camara
+    // escanea el mismo codigo otra vez al instante
+    // el profesor dijo que onBarCodeScanned no para nunca solo
     setTimeout(() => {
       ultimoCodigoRef.current = null;
     }, DELAY_REESCANEO_MS);

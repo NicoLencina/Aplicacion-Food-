@@ -210,7 +210,9 @@ export default function PantallaFicha() {
   );
 }
 
-// arma las filas de la tabla nutricional solo con los datos que no sean null
+// arma las filas de la tabla nutricional solo con los datos disponibles
+// antes mostraba todos y quedaba lleno de "sin informacion", se veia feo
+// si el valor es null no entra, si es 0 si porque es un valor real
 // si la api no trajo el valor, la fila no se muestra
 function armarFilasNutricionales(n: NutrientesAPI) {
   type Fila = { label: string; valor: number | null; unidad: string; subfila?: boolean };
