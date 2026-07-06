@@ -142,17 +142,6 @@ export default function PantallaFicha() {
 
       <View style={styles.nombreRow}>
         <Text style={styles.nombre}>{producto.nombre}</Text>
-        <Pressable
-          style={styles.botonFav}
-          onPress={handleToggleFav}
-          hitSlop={8}
-        >
-          <FontAwesome
-            name={favActivo ? "heart" : "heart-o"}
-            size={26}
-            color={favActivo ? "#d32f2f" : "#888"}
-          />
-        </Pressable>
       </View>
       {producto.marcas ? (
         <Text style={styles.marca}>{producto.marcas}</Text>
@@ -166,8 +155,21 @@ export default function PantallaFicha() {
             resizeMode="contain"
           />
         ) : (
-          <Text style={styles.imagenEmoji}>🍽️</Text>
+          <View style={styles.imagenPlaceholderFicha}>
+            <Text style={styles.imagenEmoji}>🍽️</Text>
+          </View>
         )}
+        <Pressable
+          style={[styles.botonFavImagen, favActivo && styles.botonFavImagenActivo]}
+          onPress={handleToggleFav}
+          hitSlop={8}
+        >
+          <FontAwesome
+            name={favActivo ? "heart" : "heart-o"}
+            size={20}
+            color={favActivo ? "#fff" : "#fff"}
+          />
+        </Pressable>
       </View>
 
       <Text style={styles.seccionTitulo}>Clasificación del producto</Text>
@@ -391,10 +393,8 @@ const styles = StyleSheet.create({
     fontSize: 64,
   },
   nombreRow: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
   },
   nombre: {
     fontSize: 30,
@@ -402,10 +402,26 @@ const styles = StyleSheet.create({
     color: COLORES.principal,
     textAlign: "center",
     flexWrap: "wrap",
-    flexShrink: 1,
   },
-  botonFav: {
-    padding: 4,
+  botonFavImagen: {
+    position: "absolute",
+    bottom: 8,
+    right: 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  botonFavImagenActivo: {
+    backgroundColor: "rgba(211,47,47,0.8)",
+  },
+  imagenPlaceholderFicha: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   marca: {
     fontSize: 16,
