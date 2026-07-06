@@ -94,7 +94,7 @@ type ItemLista = {
 
 // este objeto relaciona cada categoria con una imagen local
 const IMAGENES_CATEGORIA: Record<string, any> = {
-  beverages: require("@/assets/images/categorias/bebidas.jpg"),
+  beverages: require("@/assets/images/categorias/bebidas.png"),
   "cereals-and-potatoes": require("@/assets/images/categorias/Cereales.jpg"),
   chocolates: require("@/assets/images/categorias/Chocolate.jpg"),
   meals: require("@/assets/images/categorias/Comidas.jpg"),
