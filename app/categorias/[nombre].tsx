@@ -7,7 +7,7 @@ import { mensajeErrorAmigable } from "@/utils/errores";
 import type { ProductoAPIResumen } from "@/transformers/openFoodFactsTransformer";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 type CategoriaParams = {
   nombre: string;
@@ -118,7 +118,12 @@ export default function PantallaCategoria() {
 
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState<ProductoParaTarjeta[]>([]);
+  const [todosLosItems, setTodosLosItems] = useState<ProductoParaTarjeta[]>([]);
+  const [cantidadAMostrar, setCantidadAMostrar] = useState(CANTIDAD_A_MOSTRAR);
+
+  // items visibles: slice del listado filtrado completo
+  const items = todosLosItems.slice(0, cantidadAMostrar);
+  const hayMasItems = cantidadAMostrar < todosLosItems.length;
 
   useEffect(() => {
     if (!nombre) return;
@@ -126,7 +131,8 @@ export default function PantallaCategoria() {
     let activo = true;
     setCargando(true);
     setError(null);
-    setItems([]);
+    setTodosLosItems([]);
+    setCantidadAMostrar(CANTIDAD_A_MOSTRAR);
 
     const tagOFF = categorias.find((c) => c.id === nombre)?.tagOFF;
 
@@ -152,12 +158,20 @@ export default function PantallaCategoria() {
         // si tras filtrar no queda nada, preferimos mostrar vacio
         // a mostrar productos de categorias equivocadas
         if (ordenados.length === 0) {
-          setItems([]);
+          setTodosLosItems([]);
         } else {
-          setItems(ordenados.slice(0, CANTIDAD_A_MOSTRAR).map(aProductoTarjeta));
+          // deduplica por codigo de barras por si la api repite
+          const ids = new Set<string>();
+          const unicos = ordenados.filter((p) => {
+            if (ids.has(p.codigoBarras)) return false;
+            ids.add(p.codigoBarras);
+            return true;
+          });
+          setTodosLosItems(unicos.map(aProductoTarjeta));
         }
+        setCantidadAMostrar(CANTIDAD_A_MOSTRAR);
       })
-      .catch((e: Error) => {
+      .catch((e: unknown) => {
         if (!activo) return;
         setError(mensajeErrorAmigable(e));
       })
@@ -169,6 +183,12 @@ export default function PantallaCategoria() {
       activo = false;
     };
   }, [nombre]);
+
+  // muestra los siguientes N productos del listado filtrado
+  // sin pedirle mas datos a la api (ya estan en todosLosItems)
+  function cargarMas() {
+    setCantidadAMostrar((prev) => prev + CANTIDAD_A_MOSTRAR);
+  }
 
   return (
     <View style={styles.container}>
@@ -195,6 +215,13 @@ export default function PantallaCategoria() {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <TarjetaProducto producto={item} />}
           contentContainerStyle={styles.lista}
+          ListFooterComponent={
+            hayMasItems ? (
+              <Pressable style={styles.botonVerMas} onPress={cargarMas}>
+                <Text style={styles.indicador}>ver mas</Text>
+              </Pressable>
+            ) : null
+          }
         />
       )}
     </View>
@@ -225,5 +252,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#cc0000",
     textAlign: "center",
+  },
+  botonVerMas: {
+    backgroundColor: "#2a7f9e",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  indicador: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
