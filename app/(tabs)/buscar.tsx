@@ -246,8 +246,22 @@ export default function PantallaBusqueda() {
               </View>
             ) : (
               <>
-                <View style={styles.scanFrameBorder}>
-                  <FontAwesome name="barcode" size={36} color="rgba(255,255,255,0.7)" />
+                <View style={styles.scannerCorners}>
+                  <View style={[styles.corner, styles.cornerTL]} />
+                  <View style={[styles.corner, styles.cornerTR]} />
+                  <View style={[styles.corner, styles.cornerBL]} />
+                  <View style={[styles.corner, styles.cornerBR]} />
+                  <View style={{ flex: 1 }} />
+                  <View style={styles.barrasContainer}>
+                    <View style={styles.barraCodigo} />
+                    <View style={[styles.barraCodigo, { height: 18 }]} />
+                    <View style={styles.barraCodigo} />
+                    <View style={[styles.barraCodigo, { height: 24 }]} />
+                    <View style={styles.barraCodigo} />
+                    <View style={[styles.barraCodigo, { height: 14 }]} />
+                    <View style={styles.barraCodigo} />
+                  </View>
+                  <View style={{ height: 16 }} />
                 </View>
                 <Text style={styles.scanHint}>Escaneá el código de barras</Text>
               </>
@@ -334,14 +348,58 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 16,
   },
-  scanFrameBorder: {
-    width: 220,
-    height: 140,
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.4)",
-    borderRadius: 16,
-    justifyContent: "center",
+  scannerCorners: {
+    width: 240,
+    height: 160,
     alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.3)",
+    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  barrasContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  barraCodigo: {
+    width: 4,
+    height: 22,
+    backgroundColor: "rgba(255,255,255,0.7)",
+    borderRadius: 1,
+  },
+  corner: {
+    position: "absolute",
+    width: 28,
+    height: 28,
+    borderColor: "rgba(255,255,255,0.8)",
+  },
+  cornerTL: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+    borderTopLeftRadius: 6,
+  },
+  cornerTR: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 3,
+    borderRightWidth: 3,
+    borderTopRightRadius: 6,
+  },
+  cornerBL: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 3,
+    borderLeftWidth: 3,
+    borderBottomLeftRadius: 6,
+  },
+  cornerBR: {
+    bottom: 0,
+    right: 0,
+    borderBottomWidth: 3,
+    borderRightWidth: 3,
+    borderBottomRightRadius: 6,
   },
   scanHint: {
     fontSize: 15,
