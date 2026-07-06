@@ -9,7 +9,6 @@ import {
 } from "@/transformers/openFoodFactsTransformer";
 
 const BASE = "https://world.openfoodfacts.org/api/v2";
-const TIMEOUT_MS = 8000;
 
 // campos que pedimos al buscar un producto individual
 const CAMPOS_DETALLE = [
@@ -56,7 +55,7 @@ export type BusquedaParams = {
 
 // --- helpers internos ---
 
-//agrego reintentos para que no salga error de primera, ya que la api falla
+// reintentos simples porque la api a veces falla
 async function pedirFetch(url: string): Promise<Record<string, unknown>> {
   const MAX_INTENTOS = 4;
   const TIMEOUT_POR_INTENTO = 8000;
@@ -108,7 +107,7 @@ export async function fetchProductoPorCodigo(
 }
 
 // busca productos usando filtros de categoria, marca o etiqueta
-// NO busca por nombre de producto (search_terms) porque el profesor lo descarto
+// no busca por nombre de producto (search_terms) porque el profesor lo descarto
 export async function buscarProductos(
   params: BusquedaParams
 ): Promise<ResultadoBusquedaAPI> {
